@@ -4,6 +4,7 @@ import {
 	ProjectProvider,
 	useDispatch,
 	useProject,
+	useProjectLoading,
 } from "./state/ProjectProvider.jsx";
 import { storage } from "./state/storage.js";
 import { pushToast } from "./utils/toast.js";
@@ -55,7 +56,7 @@ function Topbar() {
 				<Button variant="ghost" size="sm" onClick={() => window.print()}>
 					🖨 {t("app.actions.print")}
 				</Button>
-				<Button variant="primary" size="sm" onClick={() => exportDocument(p)}>
+				<Button variant="primary" size="sm" onClick={() => { void exportDocument(p); }}>
 					↓ {t("app.actions.export")}
 				</Button>
 			</div>
@@ -65,6 +66,14 @@ function Topbar() {
 
 function Editor() {
 	const { t } = useT();
+	const loading = useProjectLoading();
+	if (loading) {
+		return (
+			<aside className="editor" style={{ color: "var(--c-soft)", fontFamily: "var(--ff-mono)", fontSize: "var(--fs-sm)" }}>
+				Загружаем проект…
+			</aside>
+		);
+	}
 	return (
 		<aside className="editor">
 			<h1 className="doc__title" style={{ fontSize: 22, marginBottom: 24 }}>
@@ -85,7 +94,17 @@ function Editor() {
 function Preview() {
 	const { t } = useT();
 	const p = useProject();
+	const loading = useProjectLoading();
 	const { level, usedBytes } = useQuotaWatch(p, t);
+	if (!p || loading) {
+		return (
+			<main className="preview-wrap">
+				<div className="preview-frame" style={{ minHeight: 200, display: "grid", placeItems: "center", color: "var(--c-soft)", fontFamily: "var(--ff-mono)", fontSize: "var(--fs-sm)" }}>
+					Загружаем проект…
+				</div>
+			</main>
+		);
+	}
 	return (
 		<main className="preview-wrap">
 			<div className="preview-frame">
@@ -104,12 +123,18 @@ function Preview() {
 function Shell() {
 	// связываем storage._onError → pushToast (для quota-уведомлений)
 	useEffect(() => {
-		storage._onError = (isQuota, e) => {
-			if (isQuota) {
+		storage._onError = (isQuota, e, info) => {
+			if (isQuota && info && info.offloaded) {
+				pushToast({
+					tone: "ok",
+					ttl: 8000,
+					msg: "✓ Большие файлы перенесены в надёжное хранилище браузера — проект сохранён.",
+				});
+			} else if (isQuota) {
 				pushToast({
 					tone: "err",
 					ttl: 0,
-					msg: "Не удалось сохранить в браузер: переполнение localStorage. Сократите число фото или их размер.",
+					msg: "Не удалось сохранить в браузер: переполнение. Сократите число фото или их размер.",
 				});
 			} else {
 				pushToast({

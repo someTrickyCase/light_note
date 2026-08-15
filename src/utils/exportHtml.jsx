@@ -7,6 +7,7 @@ import { I18nProvider } from "../i18n/I18nProvider.jsx";
 import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
 import { pushToast } from "./toast.js";
+import { resolveRefs } from "../state/storage.js";
 
 // Достаём CSS, который сейчас в документе (включая токены).
 // Используем document.styleSheets — сработает только если приложение
@@ -33,7 +34,7 @@ function getTokensCSS() {
 	return css;
 }
 
-export function exportDocument(project) {
+export async function exportDocument(project) {
 	if (!project) return;
 	if (typeof renderToStaticMarkup !== "function") {
 		pushToast({
@@ -42,18 +43,23 @@ export function exportDocument(project) {
 		});
 		return;
 	}
+	// Если часть бинарников лежит в IndexedDB — подтянем их в base64,
+	// иначе экспорт получит "src=__idbRef:..." и картинки не отобразятся.
+	let resolved = project;
+	try { resolved = await resolveRefs(project); } catch (_) { /* fallback к project */ }
+
 	const html = renderToStaticMarkup(
 		<I18nProvider initialLocale="ru">
-			<DocumentView project={project} />
+			<DocumentView project={resolved} />
 		</I18nProvider>,
 	);
-	const full = buildExportHTML(html, project);
+	const full = buildExportHTML(html, resolved);
 	const blob = new Blob([full], { type: "text/html;charset=utf-8" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
 	a.download =
-		(project.meta.showName || "light-note").replace(
+		(resolved.meta.showName || "light-note").replace(
 			/[^\wа-яА-ЯёЁ0-9_-]+/gi,
 			"_",
 		) + ".html";
