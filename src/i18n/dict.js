@@ -39,15 +39,18 @@ export const DICT = {
 		"meta.logo": "Логотип проката / театра",
 		"meta.logo.help": "PNG / SVG · отображается в нижнем колонтитуле документа",
 
-		"times.setup": "Время на сборку",
-		"times.setup.ph": "например, 3 ч 20 мин",
+		"times.installation": "Время на монтаж",
+		"times.installation.ph": "например, 2 ч 30 мин",
+		"times.focus": "Время на направку",
+		"times.focus.ph": "например, 3 ч 20 мин",
 		"times.runtime": "Хронометраж шоу",
 		"times.runtime.ph": "например, 1 ч 45 мин",
 		"times.staff": "Кол-во персонала",
 		"times.staff.ph": "например, 3 чел.",
-		"times.setup.note":
-			"при указанном кол-ве персонала и базовом развесе площадки",
-
+		"times.installation.note":
+			"при условии, что световой развес зала соответствует стандартному",
+		"times.focus.note":
+			"при указанном кол-ве персонала и соотвествию развеса, необходимому для на шоу",
 		"plots.base": "Базовый развес площадки",
 		"plots.base.help":
 			"Capture · JPG · плoт пустой сцены для понимания геометрии",
@@ -87,7 +90,8 @@ export const DICT = {
 
 		"doc.kick": "Техническая документация",
 		"doc.showLabel": "Название шоу",
-		"doc.times.setup": "Сборка",
+		"doc.times.focus": "Направка",
+		"doc.times.installation": "Монтаж",
 		"doc.times.runtime": "Хронометраж",
 		"doc.times.staff": "Кол-во персонала",
 		"doc.section.plots": "Развес",
