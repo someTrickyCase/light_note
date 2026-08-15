@@ -19,10 +19,8 @@ export const storage = {
       }
       if (!("logo" in m)) m.logo = null;
       const tm = { ...emptyProject().times, ...(parsed.times || {}) };
-      if ("window" in tm) {
-        tm.staff = tm.staff || tm.window;
-        delete tm.window;
-      }
+      // staff теперь массив специализаций; старую строку не восстанавливаем
+      if (!Array.isArray(tm.staff)) tm.staff = [];
       // санитизация cues: добавляем info если нет
       const cues = Array.isArray(parsed.cues) ? parsed.cues.map((c) => ({
         id: c.id || uid(),

@@ -9,6 +9,13 @@ export function projectReducer(state, action) {
   switch (action.type) {
     case "META":        return { ...state, meta: { ...state.meta, ...action.patch } };
     case "TIMES":       return { ...state, times: { ...state.times, ...action.patch } };
+
+    case "STAFF_ADD":
+      return { ...state, times: { ...state.times, staff: [...state.times.staff, { id: uid(), role: "", qty: 1 }] } };
+    case "STAFF_UPDATE":
+      return { ...state, times: { ...state.times, staff: state.times.staff.map(s => s.id === action.id ? { ...s, ...action.patch } : s) } };
+    case "STAFF_DELETE":
+      return { ...state, times: { ...state.times, staff: state.times.staff.filter(s => s.id !== action.id) } };
     case "COMMENTARY":  return { ...state, commentary: action.value };
 
     case "PLOT_SET":    return { ...state, plots: { ...state.plots, [action.which]: action.dataURL } };

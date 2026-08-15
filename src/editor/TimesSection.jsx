@@ -37,13 +37,6 @@ export function TimesSection() {
 						placeholder={t("times.runtime.ph")}
 					/>
 				</Field>
-				<Field label={t("times.staff")}>
-					<Input
-						value={p.times.staff}
-						onChange={(e) => set({ staff: e.target.value })}
-						placeholder={t("times.staff.ph")}
-					/>
-				</Field>
 			</div>
 		</div>
 	);

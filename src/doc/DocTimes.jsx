@@ -19,12 +19,6 @@ export function DocTimes({ project }) {
 				<div className="doc__time-l">{t("doc.times.runtime")}</div>
 				<div className="doc__time-v">{times.runtime || "—"}</div>
 			</div>
-			<div className="doc__time">
-				<div className="doc__time-l">{t("doc.times.staff")}</div>
-				<div className="doc__time-v" style={{ fontSize: 18 }}>
-					{times.staff || "—"}
-				</div>
-			</div>
 		</div>
 	);
 }

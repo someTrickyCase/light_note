@@ -19,6 +19,7 @@ import { GallerySection } from "./editor/GallerySection.jsx";
 import { FixturesSection } from "./editor/FixturesSection.jsx";
 import { CuesSection } from "./editor/CuesSection.jsx";
 import { CommentarySection } from "./editor/CommentarySection.jsx";
+import { StaffSection } from "./editor/StaffSection.jsx";
 
 import { DocumentView } from "./doc/DocumentView.jsx";
 
@@ -69,6 +70,7 @@ function Editor() {
 			</h1>
 			<MetaSection />
 			<TimesSection />
+			<StaffSection />
 			<PlotsSection />
 			<GallerySection />
 			<FixturesSection />

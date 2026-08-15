@@ -1,5 +1,6 @@
 import { DocHeader } from "./DocHeader.jsx";
 import { DocTimes } from "./DocTimes.jsx";
+import { DocStaff } from "./DocStaff.jsx";
 import { DocPlots } from "./DocPlots.jsx";
 import { DocGallery } from "./DocGallery.jsx";
 import { DocFixtures } from "./DocFixtures.jsx";
@@ -12,6 +13,7 @@ export function DocumentView({ project }) {
     <article className="doc">
       <DocHeader project={project} />
       <section className="doc__section"><DocTimes project={project} /></section>
+      <DocStaff project={project} />
       <DocPlots project={project} />
       <DocGallery project={project} />
       <DocFixtures project={project} />

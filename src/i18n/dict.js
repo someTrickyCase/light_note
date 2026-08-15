@@ -45,8 +45,13 @@ export const DICT = {
 		"times.focus.ph": "например, 3 ч 20 мин",
 		"times.runtime": "Хронометраж шоу",
 		"times.runtime.ph": "например, 1 ч 45 мин",
-		"times.staff": "Кол-во персонала",
-		"times.staff.ph": "например, 3 чел.",
+		"times.staff": "Персонал по специальностям",
+		"staff.add": "Добавить специальность",
+		"staff.empty":
+			"Список пуст. Добавьте специальности (видеограф, пушкарь, …) и количество людей.",
+		"staff.role.ph": "Специальность (видеограф, пушкарь, …)",
+		"staff.qty.ph": "Кол-во",
+		"staff.total": (n) => `Всего: ${n} чел.`,
 		"times.installation.note":
 			"при условии, что световой развес зала соответствует стандартному",
 		"times.focus.note":
@@ -93,7 +98,10 @@ export const DICT = {
 		"doc.times.focus": "Направка",
 		"doc.times.installation": "Монтаж",
 		"doc.times.runtime": "Хронометраж",
-		"doc.times.staff": "Кол-во персонала",
+		"doc.times.staff": "Персонал",
+		"doc.times.staff.role": "Специальность",
+		"doc.times.staff.qty": "Кол-во",
+		"doc.times.staff.total": "Всего",
 		"doc.section.plots": "Развес",
 		"doc.section.gallery": "Галерея приборов",
 		"doc.section.fixtures": "Приборы для довеса",
