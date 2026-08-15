@@ -165,9 +165,18 @@ export const storage = {
 				num: c.num ?? "",
 				name: c.name || "",
 				info: c.info ?? "",
+				cmd: c.cmd ?? "",
+				fade: c.fade ?? "",
 				trigger: c.trigger || "Go",
 			})) : [];
-			const base = { ...emptyProject(), ...parsed, meta: m, times: tm, cues };
+			// санитизация fixtures: добавляем info если нет
+			const fixtures = Array.isArray(parsed.fixtures) ? parsed.fixtures.map((f) => ({
+				id: f.id || uid(),
+				type: f.type || "",
+				qty: Number(f.qty) || 1,
+				info: f.info ?? "",
+			})) : [];
+			const base = { ...emptyProject(), ...parsed, meta: m, times: tm, cues, fixtures };
 			return await resolveRefs(base);
 		} catch (e) {
 			console.warn("[storage] load failed:", e);

@@ -53,16 +53,26 @@ export function projectReducer(state, action) {
       return { ...state, photos: photos.map((p, i) => ({ ...p, order: i })) };
     }
 
-    case "FIX_ADD":   return { ...state, fixtures: [...state.fixtures, { id: uid(), type: "", qty: 1 }] };
+    case "FIX_ADD":   return { ...state, fixtures: [...state.fixtures, { id: uid(), type: "", qty: 1, info: "" }] };
     case "FIX_UPDATE":
       return { ...state, fixtures: state.fixtures.map(f => f.id === action.id ? { ...f, ...action.patch } : f) };
     case "FIX_DELETE":return { ...state, fixtures: state.fixtures.filter(f => f.id !== action.id) };
+    case "FIX_REORDER": {
+      const { fromId, toId } = action;
+      const list = [...state.fixtures];
+      const fromIdx = list.findIndex(f => f.id === fromId);
+      const toIdx   = list.findIndex(f => f.id === toId);
+      if (fromIdx < 0 || toIdx < 0) return state;
+      const [moved] = list.splice(fromIdx, 1);
+      list.splice(toIdx, 0, moved);
+      return { ...state, fixtures: list };
+    }
 
     case "CUE_ADD":   {
       const nextNum = state.cues.length > 0
         ? Math.max(...state.cues.map(c => Number(c.num) || 0)) + 1
         : 1;
-      return { ...state, cues: [...state.cues, { id: uid(), num: nextNum, name: "", info: "", trigger: "Go" }] };
+      return { ...state, cues: [...state.cues, { id: uid(), num: nextNum, name: "", info: "", cmd: "", fade: "", trigger: "Go" }] };
     }
     case "CUE_UPDATE":
       return { ...state, cues: state.cues.map(c => c.id === action.id ? { ...c, ...action.patch } : c) };
@@ -74,6 +84,8 @@ export function projectReducer(state, action) {
         num: c.num,
         name: c.name || "",
         info: c.info || "",
+        cmd: c.cmd || "",
+        fade: c.fade || "",
         trigger: c.trigger || "Go",
       }));
       return { ...state, cues: list };
