@@ -99,8 +99,130 @@
   padding: 9px 14px; display: flex; align-items: center; gap: 7px;
   font-family: var(--ff-mono); font-size: var(--fs-xs); color: var(--c-soft);
 }
-.preview-frame__bar .d { width: 10px; height: 10px; border-radius: 50%; background: #E0E4E9; }
 .preview-frame__bar .u { flex: 1; margin-left: 10px; background: var(--c-page); border-radius: 6px; padding: 5px 12px; }
+
+/* quota lights: три круга вместо mac-style-окна.
+   Каждый уровень — свой цвет; активный залит, остальные серые с обводкой. */
+.quota-lights { display: inline-flex; gap: 6px; align-items: center; }
+.quota-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #E0E4E9;
+  border: 1px solid var(--c-line);
+  box-sizing: border-box;
+  cursor: help;
+  transition: background var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+.quota-dot--ok.is-active   { background: #4FA85C; border-color: #4FA85C; }
+.quota-dot--warn.is-active { background: #E0A93B; border-color: #E0A93B; }
+.quota-dot--err.is-active  { background: #D8504F; border-color: #D8504F; }
+
+/* ---- cues: компактный список с раскрытием ---- */
+.cue-list { display: flex; flex-direction: column; gap: 4px; }
+.cue-row {
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  overflow: hidden;
+}
+.cue-row.is-expanded { border-color: var(--c-steel); }
+.cue-row__head {
+  display: grid;
+  grid-template-columns: 44px 1fr auto auto 24px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+.cue-row__head:hover { background: var(--c-page); }
+.cue-row__num {
+  font-family: var(--ff-mono);
+  font-weight: 600;
+  color: var(--c-accent);
+  font-size: var(--fs-sm);
+}
+.cue-row__preview {
+  font-size: var(--fs-sm);
+  color: var(--c-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.cue-row__cmd-dot {
+  font-size: 9px;
+  color: var(--c-accent);
+  line-height: 1;
+}
+.cue-row__trig {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  color: var(--c-soft);
+  background: var(--c-page);
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+}
+.cue-row__chev {
+  font-size: var(--fs-sm);
+  color: var(--c-soft);
+  text-align: center;
+}
+.cue-row__body {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  border-top: 1px solid var(--c-line-2);
+  background: var(--c-page);
+}
+.cue-row__grid {
+  display: grid;
+  grid-template-columns: 60px minmax(0, 1fr) 110px;
+  gap: var(--s-2);
+  align-items: start;
+}
+.cue-row__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.cue-row__field--wide { min-width: 0; }
+.cue-row__label {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--c-soft);
+  white-space: nowrap;
+}
+.cue-row__field .input,
+.cue-row__field .textarea {
+  padding: 6px 8px;
+  font-size: var(--fs-sm);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.cue-row__actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.cue-row__actions .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* узкие экраны: editor становится ~360px, грид редактора — в одну колонку */
+@media (max-width: 600px) {
+  .cue-row__head { grid-template-columns: 36px 1fr auto 20px; }
+  .cue-row__head .cue-row__cmd-dot { display: none; }
+  .cue-row__grid { grid-template-columns: 1fr; }
+  .cue-row__actions .btn { padding: 4px 8px; }
+}
 
 /* ---- photo card in editor ---- */
 .photo-list { display: flex; flex-direction: column; gap: var(--s-3); }
@@ -116,6 +238,100 @@
 .photo-card__field input { padding: 6px 8px; font-size: var(--fs-xs); }
 .photo-card__actions { display: flex; gap: 4px; }
 
+/* ---- fixtures: компактный список с раскрытием (как у cues) ---- */
+.fixture-list { display: flex; flex-direction: column; gap: 4px; }
+.fixture-row {
+  border: 1px solid var(--c-line);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  overflow: hidden;
+}
+.fixture-row.is-expanded { border-color: var(--c-steel); }
+.fixture-row__head {
+  display: grid;
+  grid-template-columns: 44px 1fr 24px;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 8px 10px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+.fixture-row__head:hover { background: var(--c-page); }
+.fixture-row__qty {
+  font-family: var(--ff-mono);
+  font-weight: 600;
+  color: var(--c-accent);
+  font-size: var(--fs-sm);
+}
+.fixture-row__preview {
+  font-size: var(--fs-sm);
+  color: var(--c-ink-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.fixture-row__chev {
+  font-size: var(--fs-sm);
+  color: var(--c-soft);
+  text-align: center;
+}
+.fixture-row__body {
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  border-top: 1px solid var(--c-line-2);
+  background: var(--c-page);
+}
+.fixture-row__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px;
+  gap: var(--s-2);
+  align-items: start;
+}
+.fixture-row__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.fixture-row__field--wide { min-width: 0; }
+.fixture-row__label {
+  font-family: var(--ff-mono);
+  font-size: var(--fs-xs);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--c-soft);
+  white-space: nowrap;
+}
+.fixture-row__field .input,
+.fixture-row__field .textarea {
+  padding: 6px 8px;
+  font-size: var(--fs-sm);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.fixture-row__actions {
+  display: flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+.fixture-row__actions .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+@media (max-width: 600px) {
+  .fixture-row__head { grid-template-columns: 36px 1fr 20px; }
+  .fixture-row__grid { grid-template-columns: 1fr; }
+  .fixture-row__actions .btn { padding: 4px 8px; }
+}
+
+/* (старый .fix-row оставлен на всякий случай, если что-то ещё его использует) */
 .fix-row { display: grid; grid-template-columns: 1fr 80px 24px; gap: var(--s-2); align-items: center; }
 .fix-row .input { padding: 6px 8px; font-size: var(--fs-xs); }
 

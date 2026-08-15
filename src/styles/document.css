@@ -40,6 +40,27 @@
 .doc__time-v { font-family: var(--ff-display); font-size: var(--fs-2xl); font-weight: 700; }
 .doc__time-note { font-size: var(--fs-xs); color: var(--c-soft); margin-top: 6px; font-family: var(--ff-mono); }
 
+/* table: тонкие разделительные линии, без внешнего контура */
+.doc__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-md);
+  margin-top: var(--s-2);
+}
+.doc__table th,
+.doc__table td {
+  padding: var(--s-2) var(--s-3);
+  text-align: left;
+  border: none;
+  border-top: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
+}
+.doc__table th { border-bottom: 1px solid var(--c-line-2); font-weight: 600; color: var(--c-soft); font-family: var(--ff-mono); font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .05em; }
+.doc__table .doc__num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--ff-mono); }
+.doc__table thead tr:first-child th { border-top: 1px solid var(--c-line); }
+.doc__table tbody tr:last-child td { border-bottom: 1px solid var(--c-line); }
+.doc__table tfoot td { border-top: 1px solid var(--c-line-2); border-bottom: none; font-weight: 600; color: var(--c-ink); }
+
 /* plots: без рамки, подпись снизу как простой текст */
 .doc__plot { margin-bottom: var(--s-6); }
 .doc__plot a { display: block; cursor: zoom-in; }

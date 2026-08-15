@@ -1,9 +1,9 @@
 import { useT } from "../i18n/I18nProvider.jsx";
 import { useDispatch, useProject } from "../state/ProjectProvider.jsx";
 import { Badge } from "../components/Badge.jsx";
+import { Button, IconButton } from "../components/Button.jsx";
 import { EmptyState } from "../components/EmptyState.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
-import { IconButton } from "../components/Button.jsx";
 import { Input } from "../components/Field.jsx";
 import { GroupTitle } from "./GroupTitle.jsx";
 
@@ -25,6 +25,19 @@ export function GallerySection() {
         <FileDrop onFiles={onFiles} hint={t("gallery.drop.help")}>
           {t("gallery.drop")}
         </FileDrop>
+        {p.photos.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (confirm(t("gallery.confirmClear"))) d({ type: "PHOTOS_CLEAR" });
+              }}
+            >
+              ✕ {t("gallery.clearAll")}
+            </Button>
+          </div>
+        )}
         {p.photos.length === 0 ? (
           <EmptyState glyph="▤" title={t("gallery.empty")} />
         ) : (

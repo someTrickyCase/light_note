@@ -13,7 +13,7 @@ export function emptyProject() {
   return {
     version: SCHEMA_VERSION,
     meta: { showName: "", venue: "", date: "", ld: "", director: "", console: "", logo: null },
-    times: { setup: "", runtime: "", staff: "" },
+    times: { setup: "", runtime: "", staff: [] },
     plots: { base: null, show: null },
     photos: [],
     fixtures: [],

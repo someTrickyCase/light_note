@@ -1,5 +1,7 @@
 // Модальный просмотр картинки на нативном <dialog>.
-// Открывается по клику на превью; закрывается по Esc / клику на фон / крестику.
+// В превью открывается через useEffect. В экспортированном HTML
+// <dialog> рендерится всегда (даже пустой) — это позволяет инлайн-скрипту
+// в standalone-файле открывать его без пересоздания.
 import { useEffect, useRef } from "react";
 
 export function Lightbox({ src, caption, onClose }) {
@@ -15,7 +17,6 @@ export function Lightbox({ src, caption, onClose }) {
     }
   }, [src]);
 
-  // ESC по умолчанию закрывает <dialog>, но onClose не вызывается — слушаем.
   useEffect(() => {
     const d = ref.current;
     if (!d) return;
@@ -24,19 +25,17 @@ export function Lightbox({ src, caption, onClose }) {
     return () => d.removeEventListener("cancel", onCancel);
   }, [onClose]);
 
-  if (!src) return null;
   return (
     <dialog
       ref={ref}
       className="lightbox"
       onClick={(e) => {
-        // клик по фону (не по картинке) — закрыть
         if (e.target.tagName === "DIALOG") onClose();
       }}
     >
       <button type="button" className="lightbox__close" onClick={onClose} aria-label="Закрыть">✕</button>
-      <img className="lightbox__img" src={src} alt={caption || ""} />
-      {caption && <div className="lightbox__cap">{caption}</div>}
+      {src && <img className="lightbox__img" src={src} alt={caption || ""} />}
+      {src && caption && <div className="lightbox__cap">{caption}</div>}
     </dialog>
   );
 }

@@ -28,9 +28,9 @@ export function I18nProvider({ children, initialLocale }) {
     return (v == null) ? key : v;
   }, [locale]);
 
-  const tn = useCallback((key, n) => {
+  const tn = useCallback((key, ...args) => {
     const v = t(key);
-    return typeof v === "function" ? v(n) : v;
+    return typeof v === "function" ? v(...args) : v;
   }, [t]);
 
   const value = useMemo(() => ({ locale, setLocale, t, tn }), [locale, t, tn]);
