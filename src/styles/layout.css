@@ -99,8 +99,22 @@
   padding: 9px 14px; display: flex; align-items: center; gap: 7px;
   font-family: var(--ff-mono); font-size: var(--fs-xs); color: var(--c-soft);
 }
-.preview-frame__bar .d { width: 10px; height: 10px; border-radius: 50%; background: #E0E4E9; }
 .preview-frame__bar .u { flex: 1; margin-left: 10px; background: var(--c-page); border-radius: 6px; padding: 5px 12px; }
+
+/* quota lights: три круга вместо mac-style-окна.
+   Каждый уровень — свой цвет; активный залит, остальные серые с обводкой. */
+.quota-lights { display: inline-flex; gap: 6px; align-items: center; }
+.quota-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #E0E4E9;
+  border: 1px solid var(--c-line);
+  box-sizing: border-box;
+  cursor: help;
+  transition: background var(--t-fast) ease, border-color var(--t-fast) ease;
+}
+.quota-dot--ok.is-active   { background: #4FA85C; border-color: #4FA85C; }
+.quota-dot--warn.is-active { background: #E0A93B; border-color: #E0A93B; }
+.quota-dot--err.is-active  { background: #D8504F; border-color: #D8504F; }
 
 /* ---- photo card in editor ---- */
 .photo-list { display: flex; flex-direction: column; gap: var(--s-3); }

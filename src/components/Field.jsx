@@ -11,12 +11,22 @@ export function Field({ label, hint, error, children, className }) {
   );
 }
 
-export function Input({ className, mono, ...rest }) {
-  return <input className={cn("input", mono && "input--mono", className)} {...rest} />;
+export function Input({ className, mono, selectOnFocus = true, ...rest }) {
+  return (
+    <input
+      className={cn("input", mono && "input--mono", className)}
+      onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
+      {...rest}
+    />
+  );
 }
 
-const Textarea = ({ className, mono, ...rest }) => (
-  <textarea className={cn("textarea", mono && "textarea--mono", className)} {...rest} />
+const Textarea = ({ className, mono, selectOnFocus = true, ...rest }) => (
+  <textarea
+    className={cn("textarea", mono && "textarea--mono", className)}
+    onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
+    {...rest}
+  />
 );
 export { Textarea };
 

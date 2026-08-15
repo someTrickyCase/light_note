@@ -8,8 +8,10 @@ import {
 import { storage } from "./state/storage.js";
 import { pushToast } from "./utils/toast.js";
 import { exportDocument } from "./utils/exportHtml.jsx";
+import { useQuotaWatch } from "./utils/useQuotaWatch.js";
 
 import { Button } from "./components/Button.jsx";
+import { QuotaLights } from "./components/QuotaLights.jsx";
 import { Toaster } from "./components/Toaster.jsx";
 
 import { MetaSection } from "./editor/MetaSection.jsx";
@@ -81,14 +83,14 @@ function Editor() {
 }
 
 function Preview() {
+	const { t } = useT();
 	const p = useProject();
+	const { level, usedBytes } = useQuotaWatch(p, t);
 	return (
 		<main className="preview-wrap">
 			<div className="preview-frame">
 				<div className="preview-frame__bar">
-					<span className="d" />
-					<span className="d" />
-					<span className="d" />
+					<QuotaLights level={level} usedBytes={usedBytes} />
 					<span className="u">
 						light-note · {p.meta.showName || "новое шоу"}
 					</span>

@@ -5,6 +5,14 @@
 
 import { uid, emptyProject } from "./model.js";
 
+// Извлекает имя из имени файла для авто-заполнения поля "название".
+// "Mac_Quantum_05.jpg" → "Mac Quantum 05"
+function guessTag(filename) {
+  if (!filename) return "";
+  const base = filename.replace(/\.[^.]+$/, "");
+  return base.replace(/[_-]+/g, " ").trim();
+}
+
 export function projectReducer(state, action) {
   switch (action.type) {
     case "META":        return { ...state, meta: { ...state.meta, ...action.patch } };
@@ -24,7 +32,7 @@ export function projectReducer(state, action) {
     case "PHOTOS_ADD": {
       const startOrder = state.photos.length;
       const added = action.items.map((it, i) => ({
-        id: uid(), src: it.src, tag: "", caption: "", order: startOrder + i,
+        id: uid(), src: it.src, tag: guessTag(it.name), caption: "", order: startOrder + i,
       }));
       return { ...state, photos: [...state.photos, ...added] };
     }
@@ -32,6 +40,8 @@ export function projectReducer(state, action) {
       return { ...state, photos: state.photos.map(p => p.id === action.id ? { ...p, ...action.patch } : p) };
     case "PHOTO_DELETE":
       return { ...state, photos: state.photos.filter(p => p.id !== action.id) };
+    case "PHOTOS_CLEAR":
+      return { ...state, photos: [] };
     case "PHOTO_REORDER": {
       const { fromId, toId } = action;
       const photos = [...state.photos];

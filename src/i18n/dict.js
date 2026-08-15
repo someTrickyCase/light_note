@@ -72,6 +72,8 @@ export const DICT = {
 			"Прибор / позиция (например, Mac Quantum #5, FOH truss 3)",
 		"gallery.caption.ph": "Подпись (опционально)",
 		"gallery.count": (n) => `${n} фото`,
+		"gallery.clearAll": "Удалить все",
+		"gallery.confirmClear": "Удалить все фотографии? Это действие нельзя отменить.",
 
 		"fixtures.add": "Добавить прибор",
 		"fixtures.type.ph": "Тип / модель (Source Four 26°, Mac Quantum, …)",
@@ -111,6 +113,18 @@ export const DICT = {
 		"doc.foot.right": "",
 
 		"common.delete": "Удалить",
+
+		"quota.aria": "Индикатор занятого места в браузере",
+		"quota.tip.ok.idle": "Запас места в браузере (зелёный)",
+		"quota.tip.warn.idle": "Места в браузере становится меньше (жёлтый)",
+		"quota.tip.err.idle": "Место в браузере почти исчерпано (красный)",
+		"quota.tip.ok.active": "Места достаточно — всё ок",
+		"quota.tip.warn.active": "Места становится меньше — стоит удалить старые фото",
+		"quota.tip.err.active": "Место почти исчерпано — следующая загрузка может не сохраниться",
+		"quota.toast.warn":
+			"⚠ В браузере осталось меньше половины места для фото. Удалите лишние или сделайте экспорт.",
+		"quota.toast.err":
+			"🔴 Место в браузере почти исчерпано. Сохранение следующих фото может не удаться. Сделайте экспорт.",
 		"common.moveUp": "Выше",
 		"common.moveDown": "Ниже",
 		"common.confirmNew":
