@@ -8,6 +8,7 @@ import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
 import { pushToast } from "./toast.js";
 import { resolveRefs } from "../state/storage.js";
+import { EXPORT_RUNTIME_JS } from "./exportScript.js";
 
 // Достаём CSS, который сейчас в документе (включая токены).
 // Используем document.styleSheets — сработает только если приложение
@@ -84,6 +85,7 @@ body { padding: 0; background: #fff; }
 </head>
 <body>
 ${body}
+<script>${EXPORT_RUNTIME_JS}</script>
 </body>
 </html>`;
 }
