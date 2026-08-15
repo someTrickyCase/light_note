@@ -1,0 +1,52 @@
+/* =====================================================================
+   PRINT
+   Секции идут подряд. Галерея — вертикальный список фото
+   на всю ширину листа.
+   ===================================================================== */
+
+@media print {
+  :root { --c-page: #fff; }
+  body { background: #fff; }
+  .topbar, .editor, .preview-frame__bar, .toaster,
+  .doc__gallery-btn { display: none !important; }
+
+  .preview-wrap { padding: 0; max-height: none; overflow: visible; background: #fff; }
+  .preview-frame { border: none; box-shadow: none; border-radius: 0; max-width: none; }
+  .doc { padding: 0; }
+
+  /* секции подряд, разрыв только если не влезают */
+  .doc__section { page-break-before: auto; break-before: auto; }
+
+  /* заголовки не отрываются от контента */
+  .doc__head { page-break-after: avoid; break-after: avoid; }
+  .doc__h2 { page-break-after: avoid; break-after: avoid; }
+
+  /* таблицы: thead повторяется, строки целиком */
+  .tbl { page-break-inside: auto; }
+  .tbl tr { page-break-inside: avoid; break-inside: avoid; }
+  .tbl thead { display: table-header-group; }
+
+  /* галерея в печати — вертикальный список, фото на всю ширину */
+  .doc__gallery-wrap { display: block; }
+  .doc__gallery {
+    display: block;          /* не flex, не карусель */
+    overflow: visible;
+    padding: 0;
+  }
+  .doc__photo {
+    flex: none;              /* не shrink в строку */
+    width: 100%;
+    page-break-inside: avoid; /* фото с подписью не разрывать */
+    break-inside: avoid;
+    margin-bottom: 16px;     /* отступ между фото */
+  }
+  .doc__photo img {
+    width: 100%;
+    height: auto;
+    max-height: 200mm;       /* A4 = 297мм, оставляем место для подписи */
+    object-fit: contain;
+  }
+  .doc__photo-meta { padding: 6px 0 0; }
+
+  @page { size: A4 portrait; margin: 14mm 14mm 14mm 14mm; }
+}

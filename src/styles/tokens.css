@@ -1,0 +1,100 @@
+/* =====================================================================
+   DESIGN TOKENS
+   Единственное место, где заданы цвета, шрифты, отступы, радиусы.
+   Чтобы сменить брендинг — править ТОЛЬКО этот файл.
+   ===================================================================== */
+
+:root {
+	/* ---- color · base ---- */
+	--c-graphite: #1a181b;
+	--c-graphite-2: #201d22;
+	--c-steel: #2e4153;
+	--c-steel-2: #3a5168;
+	--c-ink: #1c2127;
+	--c-ink-2: #4b5663;
+	--c-soft: #8b95a1;
+	--c-page: #eef1f4;
+	--c-surface: #ffffff;
+	--c-line: #e2e7ec;
+	--c-line-2: #eef1f4;
+
+	/* ---- color · brand ---- */
+	--c-accent: #c490d1;
+	--c-accent-d: #564d65;
+	--c-accent-t: #fbede4;
+
+	/* ---- color · status ---- */
+	--c-green: #1f8a4c;
+	--c-green-bg: #e7f3ec;
+	--c-green-bd: #b7e0c6;
+	--c-amber: #b26a00;
+	--c-amber-bg: #faf0dc;
+	--c-amber-bd: #ead3a0;
+	--c-greyst: #647082;
+	--c-grey-bg: #eef1f4;
+	--c-grey-bd: #d3d9e0;
+	--c-reg: #b45309;
+	--c-reg-bg: #fbf1e3;
+	--c-reg-bd: #efcba0;
+	--c-err: #c0362c;
+	--c-err-bg: #fcedec;
+	--c-err-bd: #e9bcb8;
+	--c-info: #2e4153;
+	--c-info-bg: #eef3f8;
+	--c-info-bd: #c9d6e2;
+
+	/* ---- typography ---- */
+	/* В офлайне шрифты системные, чтобы не тянуть ничего из сети. */
+	--ff-display:
+		ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
+		system-ui, sans-serif;
+	--ff-text:
+		-apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "Helvetica Neue",
+		Arial, sans-serif;
+	--ff-mono:
+		ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, Consolas,
+		monospace;
+
+	--fs-xs: 11px;
+	--fs-sm: 12.5px;
+	--fs-md: 14px;
+	--fs-lg: 15px;
+	--fs-xl: 18px;
+	--fs-2xl: 22px;
+	--fs-3xl: 30px;
+	--fs-4xl: 40px;
+
+	--lh-tight: 1.1;
+	--lh-snug: 1.25;
+	--lh-normal: 1.5;
+	--lh-loose: 1.7;
+
+	--s-1: 4px;
+	--s-2: 8px;
+	--s-3: 12px;
+	--s-4: 16px;
+	--s-5: 20px;
+	--s-6: 24px;
+	--s-8: 32px;
+	--s-10: 40px;
+	--s-12: 48px;
+	--s-16: 64px;
+
+	--r-sm: 6px;
+	--r-md: 9px;
+	--r-lg: 12px;
+	--r-xl: 16px;
+	--r-pill: 999px;
+
+	--sh-1: 0 1px 2px rgba(28, 33, 39, 0.06);
+	--sh-2: 0 4px 14px rgba(28, 33, 39, 0.08);
+	--sh-3: 0 18px 50px rgba(28, 33, 39, 0.1);
+	--sh-accent: 0 6px 16px rgba(232, 112, 42, 0.22);
+
+	--t-fast: 120ms;
+	--t-med: 200ms;
+
+	--container: 1280px;
+	--header-h: 60px;
+	--side-w: 420px;
+}

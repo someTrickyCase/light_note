@@ -1,0 +1,21 @@
+{
+	"name": "theatre-light-note",
+	"private": true,
+	"version": "0.2.0",
+	"type": "module",
+	"description": "Light Note — браузерный редактор технической документации для театральных световых шоу. Полностью офлайн.",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"postbuild": "node scripts/postbuild.js",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"react": "^18.3.1",
+		"react-dom": "^18.3.1"
+	},
+	"devDependencies": {
+		"@vitejs/plugin-react": "^4.3.4",
+		"vite": "^5.4.10"
+	}
+}
