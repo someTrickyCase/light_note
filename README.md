@@ -13,10 +13,11 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Cue list** — grandMA2 XML import, auto-numbering, fade, trigger (Go/Follow/Time), description, macro command
 - **Commentary** — markdown editor with toolbar (bold, italic, H3, list, quote, link)
 - **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive carousel via inline vanilla JS)
+- **Open & edit an export** — "Файл → Открыть HTML…" (or drop the .html on the window) loads the project back from an exported file, pictures included. Works for files exported by this version and newer.
 - **Autosave** — IndexedDB (project + images as Blobs), saves coalesced, nothing leaves the browser
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
-- **Accessible** — images, chips, and drop zones work with the keyboard; destructive actions use a two-click confirm
+- **Accessible** — images, chips, drop zones and the "Файл" menu work with the keyboard; destructive actions ask first
 - **i18n** — Russian only for now, dictionary isolated in `src/i18n/dict.js`, ready for additional locales
 
 ## Tech stack
@@ -33,7 +34,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 ```
 .
 ├── src/
-│   ├── components/   — UI kit: Button, Chip, Badge, Field, Toaster, FileDrop, GrowTextarea, Lightbox
+│   ├── components/   — UI kit: Button, Chip, Badge, Field, Toaster, FileDrop, GrowTextarea, Lightbox, Menu, ChoiceDialog
 │   ├── editor/       — left-panel sections (input)
 │   ├── doc/          — DocumentView + subcomponents (rendered output)
 │   ├── i18n/         — dict.js + I18nProvider
