@@ -145,7 +145,7 @@
   font-family: var(--ff-mono);
   font-size: var(--fs-xs);
 }
-.doc__foot-logo { max-height: 40px; max-width: 200px; object-fit: contain; }
+.doc__foot-logo { max-height: 40px; max-width: 200px; object-fit: contain; background: var(--c-logo-bg); padding: var(--logo-pad); border-radius: var(--r-sm); }
 .doc__foot-name { color: var(--c-ink-2); }
 
 /* lightbox: полноэкранная карусель (components/Lightbox.jsx + utils/exportScript.js) */

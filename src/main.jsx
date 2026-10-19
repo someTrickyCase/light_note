@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import "./styles/index.css";
+import { applySaved } from "./utils/appearance.js";
 
 // Сохраняем CSS-токены и базовые стили в window, чтобы exportDocument
 // мог их вставить в автономный HTML-файл. Снимем ровно один раз —
@@ -15,6 +16,9 @@ const cssText = [...document.querySelectorAll("style")]
   .map((s) => s.textContent || "")
   .join("\n");
 globalThis.__INJECTED_CSS__ = cssText;
+
+// обычно оформление уже поставил скрипт в <head> index.html; здесь — на всякий случай
+applySaved();
 
 createRoot(document.querySelector("#root")).render(
   <StrictMode>
