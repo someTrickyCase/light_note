@@ -8,7 +8,7 @@
 
 .doc__head { margin-bottom: var(--s-10); }
 .doc__kick { font-family: var(--ff-mono); font-size: var(--fs-xs); letter-spacing: .2em; text-transform: uppercase; color: var(--c-accent); margin-bottom: 10px; }
-.doc__title { font-family: var(--ff-display); font-size: var(--fs-4xl); font-weight: 700; line-height: 1.05; letter-spacing: -.02em; margin-bottom: var(--s-3); }
+.doc__title { font-family: var(--ff-title); font-size: var(--fs-4xl); font-weight: 400; line-height: 1.1; /* у Yeseva One одно начертание — без поддельного жирного */ margin-bottom: var(--s-3); }
 .doc__show-label {
   font-family: var(--ff-mono);
   font-size: var(--fs-xs);
