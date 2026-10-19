@@ -192,17 +192,18 @@ See `docs/I18N.md`.
 
 ## Changelog
 
-### Unreleased
+### v0.4.0 (2026-10-20)
 
 - Storage moved to IndexedDB only (project + images as Blobs), one-time migration from localStorage, no more adaptive compression
 - Fixed: IndexedDB grew on every save after the first overflow
 - Gallery is a mosaic (justified rows, no cropping); click opens a full-screen carousel (buttons, arrow keys, swipe, counter), also in the export; plots use the same carousel
 - Images are stored as is: no compression, PNG stays PNG; photos store their pixel size
 - Storage indicator removed (the three quota dots); instead a sticky toast warns when less than 1 GB is left
-- Themes: Графит (default, dark), Полночь, Вольфрам, Светлая, Бумага; font: sans / serif. Whole app incl. preview follows; export and print stay white and sans. All raw colors moved into tokens (role tokens like `--c-strong`, `--c-on-accent`)
+- Themes: Графит (default, dark), Полночь, Вольфрам, Светлая, Бумага; font: sans / serif. Whole app incl. preview follows; export and print stay white. All raw colors moved into tokens (role tokens like `--c-strong`, `--c-on-accent`)
 - Header: one "Меню" with groups Импорт (new, open HTML) / Экспорт (download HTML, print) / Тема / Шрифт / Язык, text only; choices keep the menu open for live comparison
 - English: full translation, switch in the menu (Russian stays the default); the export is written in the current language, the premiere date is formatted for it
 - Fonts bundled offline: Arimo (text), Oswald (headings), Yeseva One (show title), Old Standard TT (serif text); the export and print follow the chosen font
+- Text 10% bigger everywhere (app, export, print): one `--fs-scale` token in `tokens.css`
 - Exported HTML can be opened and edited again: the project rides inside the file (images not duplicated); open from the header menu or drop an .html on the window; a dialog offers to download the current project before replacing it
 
 ### v0.3.0 (2026-08-15)
