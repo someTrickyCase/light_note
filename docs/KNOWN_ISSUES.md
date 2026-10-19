@@ -5,24 +5,17 @@ Ordered by priority.
 
 ## Bugs
 
-### 1. IndexedDB grows on every save after the first overflow (high)
-
-`src/state/storage.js`. After the first `QuotaExceededError`, the in-memory `project` still holds full dataURLs.
-So **every** later save (every keystroke) fails again, offloads **all** binaries again, and writes **new** blobs, because `refIdFor()` adds a random `uid()`. The old blobs are never deleted.
-
-Fix idea: stable ref ids (`photo:<id>`, `plot:base`, `logo:main`) so `put` overwrites; delete blobs of removed photos; don't re-offload what's already offloaded.
-
-### 2. "Заменить" (replace) skips image compression (medium)
+### 1. "Заменить" (replace) skips image compression (medium)
 
 `src/editor/MetaSection.jsx`, `src/editor/PlotsSection.jsx`. The first upload goes through `FileDrop` (compressed), but "Заменить" uses `readAsDataURL` directly, so a 10 MB photo goes straight into storage.
 
-Fix idea: reuse `compressImage` with the quota profile, or open a `FileDrop` picker instead.
+Fix idea: reuse `compressImage`, or open a `FileDrop` picker instead. (Will likely go away: the next stage drops compression.)
 
-### 3. MA2: `<Number/>` without the `number` attribute becomes cue 0 (low)
+### 2. MA2: `<Number/>` without the `number` attribute becomes cue 0 (low)
 
 `src/utils/ma2.js#readCueNumber`: `Number(null) === 0`. Kept as is on purpose (the old behavior). Probably it should be skipped like a non-numeric number.
 
-### 4. Markdown: `_` inside link URLs breaks the link (low)
+### 3. Markdown: `_` inside link URLs breaks the link (low)
 
 `src/doc/markdown.js#mdInline`: italic (`_x_`) runs before links, so `[a](https://x.com/a_b_c)` gets `<em>` inside the URL. Not a security problem (everything is escaped), just a broken link. Bold/italic also apply inside `` `code` ``.
 

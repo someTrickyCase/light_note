@@ -7,7 +7,6 @@ import { I18nProvider } from "../i18n/I18nProvider.jsx";
 import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
 import { pushToast } from "./toast.js";
-import { resolveReferences } from "../state/storage.js";
 import { makeTranslator } from "../i18n/translate.js";
 import { EXPORT_RUNTIME_JS } from "./exportScript.js";
 
@@ -39,7 +38,7 @@ function getTokensCSS() {
 // Экспорт пока только на русском. При добавлении языков — передавать текущую локаль.
 const EXPORT_LOCALE = "ru";
 
-export async function exportDocument(project) {
+export function exportDocument(project) {
 	if (!project) { return; }
 	if (typeof renderToStaticMarkup !== "function") {
 		pushToast({
@@ -48,23 +47,18 @@ export async function exportDocument(project) {
 		});
 		return;
 	}
-	// Если часть бинарников лежит в IndexedDB — подтянем их в base64,
-	// иначе экспорт получит "src=__idbRef:..." и картинки не отобразятся.
-	let resolved = project;
-	try { resolved = await resolveReferences(project); } catch { /* fallback к project */ }
-
 	const html = renderToStaticMarkup(
 		<I18nProvider initialLocale={EXPORT_LOCALE}>
-			<DocumentView project={resolved} />
+			<DocumentView project={project} />
 		</I18nProvider>,
 	);
-	const full = buildExportHTML(html, resolved);
+	const full = buildExportHTML(html, project);
 	const blob = new Blob([full], { type: "text/html;charset=utf-8" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
 	a.download =
-		`${(resolved.meta.showName || "light-note").replaceAll(
+		`${(project.meta.showName || "light-note").replaceAll(
 			/[^\wа-яА-ЯёЁ0-9_-]+/gi,
 			"_",
 		)}.html`;

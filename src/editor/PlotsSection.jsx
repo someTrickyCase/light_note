@@ -3,7 +3,6 @@ import { useDispatch, useProject } from "../state/ProjectProvider.jsx";
 import { Button } from "../components/Button.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
 import { readAsDataURL } from "../utils/files.js";
-import { projectQuotaLevel } from "../utils/storageQuota.js";
 
 function PlotUploader({ which, label, help }) {
   const { t } = useT();
@@ -21,7 +20,6 @@ function PlotUploader({ which, label, help }) {
       ) : (
         <FileDrop
           onFiles={(items) => { if (items[0]) { d({ type: "PLOT_SET", which, dataURL: items[0].src }); } }}
-          getQuotaLevel={() => projectQuotaLevel(p)}
           multiple={false}
           hint={help}
         />

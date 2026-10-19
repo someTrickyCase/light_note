@@ -5,7 +5,6 @@ import { Field, Input } from "../components/Field.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
 import { GroupTitle } from "./GroupTitle.jsx";
 import { readAsDataURL } from "../utils/files.js";
-import { projectQuotaLevel } from "../utils/storageQuota.js";
 
 export function MetaSection() {
   const { t } = useT();
@@ -61,7 +60,6 @@ export function MetaSection() {
           ) : (
             <FileDrop
               onFiles={(items) => { if (items[0]) { set({ logo: items[0].src }); } }}
-              getQuotaLevel={() => projectQuotaLevel(p)}
               multiple={false} hint={t("meta.logo.help")}
             >
               {t("meta.logo.upload")}

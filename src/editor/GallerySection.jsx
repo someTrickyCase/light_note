@@ -6,7 +6,6 @@ import { ConfirmButton } from "../components/ConfirmButton.jsx";
 import { EmptyState } from "../components/EmptyState.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
 import { Input } from "../components/Field.jsx";
-import { projectQuotaLevel } from "../utils/storageQuota.js";
 import { GroupTitle } from "./GroupTitle.jsx";
 
 function PhotoCard({ photo, previous, next }) {
@@ -56,7 +55,7 @@ export function GallerySection() {
         ) : null}
       </GroupTitle>
       <div className="editor__stack">
-        <FileDrop onFiles={onFiles} getQuotaLevel={() => projectQuotaLevel(p)} hint={t("gallery.drop.help")}>
+        <FileDrop onFiles={onFiles} hint={t("gallery.drop.help")}>
           {t("gallery.drop")}
         </FileDrop>
         {hasPhotos ? (

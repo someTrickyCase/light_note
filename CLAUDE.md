@@ -20,7 +20,7 @@ npm run lint      # strict ESLint (eslint.config.js): every rule is an error
 - **Strings:** all UI and document text through `t()` / `tn()` from `src/i18n/dict.js`. No hardcoded text in JSX.
 - **`src/doc/*` stays pure:** it renders in the preview, in the export (`renderToStaticMarkup`), and in print. No dispatch or side effects there.
 - **Gallery/lightbox markup** in `src/doc/` is mirrored by vanilla JS in `src/utils/exportScript.js`. Change both together.
-- **Storage:** only `src/state/storage.js` / `idb.js` touch localStorage/IndexedDB. Changing the saved shape requires a migration in `storage.load`.
+- **Storage:** IndexedDB only, touched only by `src/state/storage.js` / `idb.js` (localStorage holds just the UI locale). Changing the saved shape requires a migration in `storage.load`.
 
 ## Before saying "done"
 

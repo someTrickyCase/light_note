@@ -21,11 +21,11 @@ export const DICT = {
 		"app.loading": "Загружаем проект…",
 		"app.frame.title": (name) => `light-note · ${name || "новое шоу"}`,
 
-		"storage.toast.offloaded":
-			"✓ Большие файлы перенесены в надёжное хранилище браузера — проект сохранён.",
 		"storage.toast.quota":
 			"Не удалось сохранить в браузер: переполнение. Сократите число фото или их размер.",
 		"storage.toast.error": (message) => `Ошибка сохранения: ${message}`,
+		"storage.toast.loadFailed": (message) =>
+			`Не удалось прочитать проект из браузера (${message}). Изменения НЕ сохраняются — сделайте экспорт HTML.`,
 
 		"export.title": (name) => `${name} · техническая документация`,
 		"export.unavailable": "renderToStaticMarkup недоступен — нельзя экспортировать.",
@@ -187,6 +187,7 @@ export const DICT = {
 		"unit.b": "Б",
 		"unit.kb": "КБ",
 		"unit.mb": "МБ",
+		"unit.gb": "ГБ",
 
 		"quota.aria": "Индикатор занятого места в браузере",
 		"quota.tip.ok.idle": "Запас места в браузере (зелёный)",

@@ -13,7 +13,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Cue list** — grandMA2 XML import, auto-numbering, fade, trigger (Go/Follow/Time), description, macro command
 - **Commentary** — markdown editor with toolbar (bold, italic, H3, list, quote, link)
 - **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive gallery/lightbox via inline vanilla JS)
-- **Autosave** — localStorage with adaptive compression and transparent overflow handling
+- **Autosave** — IndexedDB (project + images as Blobs), saves coalesced, nothing leaves the browser
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
 - **Accessible** — images, chips, and drop zones work with the keyboard; destructive actions use a two-click confirm
@@ -24,7 +24,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **React 18** + **ReactDOM** (`renderToStaticMarkup` for export)
 - **Vite 5** — bundler, dev server, HMR
 - **Plain CSS** with design tokens in `:root` — no CSS frameworks
-- **localStorage** for project state, **IndexedDB** for binaries (photos, plots, logo) on overflow
+- **IndexedDB** for the project and its images (photos, plots, logo)
 - No state-management libraries (custom reducer + context)
 - No router (single-page)
 
@@ -37,7 +37,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 │   ├── editor/       — left-panel sections (input)
 │   ├── doc/          — DocumentView + subcomponents (rendered output)
 │   ├── i18n/         — dict.js + I18nProvider
-│   ├── state/        — model, reducer, storage (LS+IDB), idb, ProjectProvider
+│   ├── state/        — model, reducer, storage (IDB), idb, ProjectProvider
 │   ├── utils/        — files, toast, ma2 parser, storageQuota, useQuotaWatch, exportHtml, exportScript
 │   ├── styles/       — tokens, base, components, layout, document, print
 │   ├── App.jsx
@@ -96,10 +96,11 @@ The exported single-file HTML (downloaded via "↓ HTML" button) is a self-conta
 
 ## Data storage
 
-- **localStorage** — project metadata + small text fields (one project per origin).
-- **IndexedDB** — photos, plots, logo (Blob storage); used automatically when localStorage approaches its limit (≥60% / ≥85% thresholds).
-- **Adaptive compression** — JPEG quality drops (0.82 → 0.7 → 0.55) and max dimension shrinks (1920 → 1600 → 1280 px) as the quota lights approach red.
-- **Quota indicator** — three lights in the preview frame header (ok / warn / err) with hover tooltips and toast on threshold transitions.
+- **IndexedDB** — the project JSON and every image (photos, plots, logo) as a Blob under a stable key. One project per origin. The browser is asked to keep the data persistent.
+- **Migration** — projects from v0.3 and older (localStorage) are moved to IndexedDB once, on first load, and checked before the old copy is removed.
+- **Compression** — images are resized to 1920 px on the long side and saved as JPEG 0.82.
+- **Quota indicator** — three lights in the preview frame header (ok / warn / err) showing real browser usage from `navigator.storage.estimate()`, with hover tooltips and a toast on threshold transitions.
+- **localStorage** — only the UI locale (`tld.locale.v1`).
 
 No data leaves the browser. Clearing site data erases everything.
 

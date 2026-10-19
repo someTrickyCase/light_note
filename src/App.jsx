@@ -57,7 +57,7 @@ function Topbar() {
 				<Button variant="ghost" size="sm" onClick={() => globalThis.print()}>
 					🖨 {t("app.actions.print")}
 				</Button>
-				<Button variant="primary" size="sm" onClick={() => { void exportDocument(p); }}>
+				<Button variant="primary" size="sm" onClick={() => exportDocument(p)}>
 					↓ {t("app.actions.export")}
 				</Button>
 			</div>
@@ -90,7 +90,7 @@ function Preview() {
 	const { t, tn } = useT();
 	const p = useProject();
 	const loading = useProjectLoading();
-	const { level, usedBytes } = useQuotaWatch(p, t);
+	const { level, usedBytes, quotaBytes } = useQuotaWatch(p, t);
 	if (!p || loading) {
 		return (
 			<main className="preview-wrap">
@@ -102,7 +102,7 @@ function Preview() {
 		<main className="preview-wrap">
 			<div className="preview-frame">
 				<div className="preview-frame__bar">
-					<QuotaLights level={level} usedBytes={usedBytes} />
+					<QuotaLights level={level} usedBytes={usedBytes} quotaBytes={quotaBytes} />
 					<span className="u">{tn("app.frame.title", p.meta.showName)}</span>
 				</div>
 				<DocumentView project={p} />
@@ -111,25 +111,23 @@ function Preview() {
 	);
 }
 
-// Сообщение для тоста по результату storage.save (см. state/storage.js)
-function storageToast(tn, isQuota, error, info) {
-	if (isQuota && info?.offloaded) {
-		return { tone: "ok", ttl: 8000, msg: tn("storage.toast.offloaded") };
-	}
-	if (isQuota) {
+// Сообщение для тоста по ошибке storage (см. state/storage.js); kind: "quota" | "error" | "load"
+function storageToast(tn, kind, error) {
+	if (kind === "quota") {
 		return { tone: "err", ttl: 0, msg: tn("storage.toast.quota") };
+	}
+	if (kind === "load") {
+		return { tone: "err", ttl: 0, msg: tn("storage.toast.loadFailed", error.message || error) };
 	}
 	return { tone: "warn", msg: tn("storage.toast.error", error.message || error) };
 }
 
 function Shell() {
 	const { tn } = useT();
-	// связываем storage._onError → pushToast (для quota-уведомлений)
+	// ошибки storage → pushToast (переполнение, сбой записи или чтения)
 	useEffect(() => {
-		storage._onError = (isQuota, error, info) => pushToast(storageToast(tn, isQuota, error, info));
-		return () => {
-			storage._onError = null;
-		};
+		storage.setErrorHandler((kind, error) => pushToast(storageToast(tn, kind, error)));
+		return () => storage.setErrorHandler(null);
 	}, [tn]);
 
 	return (

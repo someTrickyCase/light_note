@@ -1,5 +1,5 @@
 // =====================================================================
-// COMPONENT · ИНДИКАТОР ЗАНЯТОГО МЕСТА В LOCALSTORAGE
+// COMPONENT · ИНДИКАТОР ЗАНЯТОГО МЕСТА В БРАУЗЕРЕ
 // =====================================================================
 // Три светящихся круга в шапке превью (как macOS-окно).
 // Каждый круг = один уровень: ok / warn / err.
@@ -7,15 +7,17 @@
 // На hover — нативный title с человекочитаемым размером и подсказкой.
 
 import { useT } from "../i18n/I18nProvider.jsx";
-import { QUOTA_LEVELS, formatBytes, QUOTA_BUDGET_BYTES } from "../utils/storageQuota.js";
+import { QUOTA_LEVELS, formatBytes } from "../utils/storageQuota.js";
 
 const DOTS = ["ok", "warn", "err"];
 
-export function QuotaLights({ level, usedBytes, budget = QUOTA_BUDGET_BYTES }) {
+export function QuotaLights({ level, usedBytes, quotaBytes }) {
 	const { t } = useT();
 	const used = formatBytes(usedBytes, t);
-	const total = formatBytes(budget, t);
-	const ratio = Math.min(100, Math.round((usedBytes / budget) * 100));
+	// quotaBytes = 0 — браузер не сообщает лимит, показываем только занятое
+	const amount = quotaBytes
+		? `${used} / ${formatBytes(quotaBytes, t)} (${Math.min(100, Math.round((usedBytes / quotaBytes) * 100))}%)`
+		: used;
 
 	return (
 		<span className="quota-lights" aria-label={t("quota.aria")}>
@@ -24,7 +26,7 @@ export function QuotaLights({ level, usedBytes, budget = QUOTA_BUDGET_BYTES }) {
 				const order = QUOTA_LEVELS[lvl].order;
 				const tipKey = isActive ? `quota.tip.${lvl}.active` : `quota.tip.${lvl}.idle`;
 				const title = isActive
-					? `${t(tipKey)} · ${used} / ${total} (${ratio}%)`
+					? `${t(tipKey)} · ${amount}`
 					: t(tipKey);
 				return (
 					<span
