@@ -28,7 +28,6 @@ export const DICT = {
 			`Не удалось прочитать проект из браузера (${message}). Изменения НЕ сохраняются — сделайте экспорт HTML.`,
 
 		"export.title": (name) => `${name} · техническая документация`,
-		"export.unavailable": "renderToStaticMarkup недоступен — нельзя экспортировать.",
 
 		"editor.heading": "Параметры шоу",
 		"editor.meta": "Общие сведения",
@@ -95,8 +94,10 @@ export const DICT = {
 		"gallery.clearAll": "Удалить все",
 		"gallery.confirmClear": "Удалить все фотографии? Это действие нельзя отменить.",
 		"gallery.clearAll.confirm": "Точно удалить все?",
-		"gallery.prev": "Предыдущее фото",
-		"gallery.next": "Следующее фото",
+		"lightbox.prev": "Предыдущее",
+		"lightbox.next": "Следующее",
+		// формат счётчика повторён в utils/exportScript.js — менять вместе
+		"lightbox.count": (current, total) => `${current} / ${total}`,
 
 		"fixtures.add": "Добавить прибор",
 		"fixtures.type.ph": "Название / модель (Source Four 26°, Mac Quantum, …)",
@@ -189,17 +190,8 @@ export const DICT = {
 		"unit.mb": "МБ",
 		"unit.gb": "ГБ",
 
-		"quota.aria": "Индикатор занятого места в браузере",
-		"quota.tip.ok.idle": "Запас места в браузере (зелёный)",
-		"quota.tip.warn.idle": "Места в браузере становится меньше (жёлтый)",
-		"quota.tip.err.idle": "Место в браузере почти исчерпано (красный)",
-		"quota.tip.ok.active": "Места достаточно — всё ок",
-		"quota.tip.warn.active": "Места становится меньше — стоит удалить старые фото",
-		"quota.tip.err.active": "Место почти исчерпано — следующая загрузка может не сохраниться",
-		"quota.toast.warn":
-			"⚠ В браузере осталось меньше половины места для фото. Удалите лишние или сделайте экспорт.",
-		"quota.toast.err":
-			"🔴 Место в браузере почти исчерпано. Сохранение следующих фото может не удаться. Сделайте экспорт.",
+		"storage.lowSpace": (free) =>
+			`Место в браузере заканчивается: осталось ${free}. Новые фото могут не сохраниться. Удалите лишние фото и сделайте экспорт HTML как резервную копию.`,
 		"common.moveUp": "Выше",
 		"common.moveDown": "Ниже",
 		"common.confirmNew":

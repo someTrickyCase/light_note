@@ -91,6 +91,19 @@
 	--sh-3: 0 18px 50px rgba(28, 33, 39, 0.1);
 	--sh-accent: 0 6px 16px rgba(232, 112, 42, 0.22);
 
+	/* полноэкранный просмотр (lightbox): затемнение и элементы поверх фото */
+	--c-backdrop: rgba(0, 0, 0, 0.88);
+	--c-on-overlay: #ffffff;
+	--c-overlay-btn: rgba(0, 0, 0, 0.4);
+	--c-overlay-btn-h: rgba(0, 0, 0, 0.7);
+	--c-overlay-line: rgba(255, 255, 255, 0.4);
+	--sh-on-overlay: 0 1px 2px rgba(0, 0, 0, 0.8);
+
+	/* мозаика галереи: высота строки (на телефоне ниже) */
+	--gallery-row-h: 180px;
+	--gallery-row-h-sm: 110px;
+	--gallery-row-max: 1.6; /* строка может вырасти максимум в 1.6 раза */
+
 	--t-fast: 120ms;
 	--t-med: 200ms;
 

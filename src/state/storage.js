@@ -14,6 +14,7 @@
 
 import { uid, emptyProject, STORAGE_KEY, SCHEMA_VERSION } from "./model.js";
 import * as idb from "./idb.js";
+import { measureImage } from "../utils/files.js";
 
 const BLOB_PREFIX = "__blob:";
 const LEGACY_PREFIX = "__idbRef:";
@@ -124,6 +125,22 @@ function migrateProject(parsed) {
 	};
 }
 
+// Фото до v0.4 не знают свой размер, а мозаике галереи нужно соотношение сторон.
+// Меряем один раз при загрузке (размер сохранится со следующим сохранением).
+// Не получилось (битая картинка) — без размера, галерея возьмёт запасное соотношение.
+async function addPhotoSizes(project) {
+	const photos = await Promise.all(project.photos.map(async (photo) => {
+		if (!photo.src || (photo.width > 0 && photo.height > 0)) { return photo; }
+		try {
+			const { width, height } = await measureImage(photo.src);
+			return { ...photo, width, height };
+		} catch {
+			return photo;
+		}
+	}));
+	return { ...project, photos };
+}
+
 const isQuotaError = (error) =>
 	Boolean(error) && (error.name === "QuotaExceededError" || /quota/i.test(String(error.message)));
 
@@ -213,7 +230,7 @@ export function createStorage() {
 	}
 
 	async function migrateFromLocalStorage(legacy) {
-		const project = await resolveLegacyReferences(migrateProject(legacy));
+		const project = await addPhotoSizes(await resolveLegacyReferences(migrateProject(legacy)));
 		written = new Map();
 		await writeProject(project);
 
@@ -262,7 +279,7 @@ export function createStorage() {
 				throw new Error(`unknown project version: ${saved.version}`);
 			}
 			// сначала санитизация (битые записи, фото без id), потом картинки
-			const project = await restoreBlobs(migrateProject(saved));
+			const project = await addPhotoSizes(await restoreBlobs(migrateProject(saved)));
 			collectGarbage().catch((error) => console.warn("[storage] cleanup failed:", error));
 			return project;
 		} catch (error) {

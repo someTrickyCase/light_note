@@ -24,13 +24,20 @@ export default defineConfig({
 		},
 		coverage: {
 			provider: "v8",
-			// Пока покрыт слой хранения (этап 1). Новые модули добавлять сюда вместе с тестами.
+			// Покрытые модули: хранение (этап 1), галерея/карусель/экспорт (этап 2).
+			// Новые модули добавлять сюда вместе с тестами.
 			include: [
 				"src/state/storage.js",
 				"src/state/idb.js",
 				"src/utils/storageQuota.js",
-				"src/utils/useQuotaWatch.js",
-				"src/components/QuotaLights.jsx",
+				"src/utils/useSpaceWarning.js",
+				"src/utils/files.js",
+				"src/utils/exportHtml.jsx",
+				"src/components/FileDrop.jsx",
+				"src/components/Lightbox.jsx",
+				"src/doc/DocGallery.jsx",
+				"src/doc/DocPlots.jsx",
+				"src/doc/ZoomImage.jsx",
 			],
 			reporter: ["text", "html"],
 			thresholds: { lines: 95, functions: 95, branches: 95, statements: 95 },

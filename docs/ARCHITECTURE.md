@@ -20,10 +20,9 @@ src/
 │   ├── Button, Chip, Badge, Field, EmptyState, Toast
 │   ├── Toaster.jsx          # renders the toast queue via useSyncExternalStore
 │   ├── ConfirmButton.jsx    # two-click confirm (used instead of window.confirm)
-│   ├── FileDrop.jsx         # drag & drop / picker; compresses images (compress prop)
+│   ├── FileDrop.jsx         # drag & drop / picker; files as is (no compression) + pixel size
 │   ├── GrowTextarea.jsx     # auto-height textarea (forwardRef)
-│   ├── Lightbox.jsx         # image zoom (in-app)
-│   ├── QuotaLights.jsx      # ok / warn / err storage indicator
+│   ├── Lightbox.jsx         # full-screen carousel on <dialog>: ‹ › / ← → / swipe, wraps around
 │   └── cn.js                # className joiner
 ├── editor/                  # LEFT panel: input forms, read useProject(), write useDispatch()
 │   ├── MetaSection, TimesSection, StaffSection, PlotsSection,
@@ -33,7 +32,7 @@ src/
 │   ├── DocumentView.jsx     # composes all Doc* sections; used by preview AND export
 │   ├── DocHeader, DocTimes, DocStaff, DocPlots, DocGallery,
 │   ├── DocFixtures, DocCues, DocCommentary, DocFooter
-│   ├── ZoomImage.jsx        # <button class="doc__zoom"> around an image; opens the Lightbox
+│   ├── ZoomImage.jsx        # <button class="doc__zoom" data-title data-caption> around an image; opens the Lightbox
 │   └── markdown.js          # tiny markdown → HTML renderer for commentary (escapes HTML first)
 ├── state/
 │   ├── model.js             # emptyProject(), uid(), STORAGE_KEY, SCHEMA_VERSION
@@ -47,11 +46,11 @@ src/
 │   └── I18nProvider.jsx     # useT() → { t, tn, locale, setLocale }
 ├── utils/
 │   ├── ma2.js               # parseMA2(xml): grandMA2 XML → { cues, fixtures, warnings: [{ code }] }
-│   ├── exportHtml.jsx       # exportDocument(): renderToStaticMarkup → download .html
-│   ├── exportScript.js      # EXPORT_RUNTIME_JS: vanilla JS for gallery + lightbox in export
-│   ├── files.js             # readAsDataURL, compressImage, escapeHtml
-│   ├── storageQuota.js      # formatBytes(), quotaLevel(used, quota) thresholds
-│   ├── useQuotaWatch.js     # hook: current quota level, toasts when it gets worse
+│   ├── exportHtml.jsx       # renderExportHTML(project) → string; exportDocument() downloads it
+│   ├── exportScript.js      # EXPORT_RUNTIME_JS: vanilla JS twin of Lightbox for the export
+│   ├── files.js             # readAsDataURL, measureImage, escapeHtml
+│   ├── storageQuota.js      # formatBytes(), freeBytes(), isSpaceLow() — warn under 1 GB left
+│   ├── useSpaceWarning.js   # hook: sticky "low space" toast when < 1 GB is left
 │   └── toast.js             # global toast queue: pushToast(), subscribeToToasts()
 └── styles/
     ├── index.css            # imports all below, in order
@@ -72,15 +71,15 @@ src/
 
 - `editor/*` (input) and `doc/*` (output) are separate React subtrees. Both read the same `project`.
 - `doc/*` is a **pure function of `project`**: no dispatch, no side effects, no browser-only APIs during render. It must render the same way in the preview, in `renderToStaticMarkup` (export), and in print.
-- Interactivity in `doc/*` (gallery buttons, lightbox) must also work in the export, so it's duplicated in plain JS in `utils/exportScript.js`. It relies on these classes: `.doc__gallery-wrap`, `.doc__gallery`, `.doc__gallery-btn--prev/--next`, `.doc__photo`, `.doc__zoom` (+ `data-caption`), `.lightbox`, `.lightbox__close`, `.lightbox__img`, `.lightbox__cap`. If you change them, update `exportScript.js` too.
-- `components/*` is a UI kit: it doesn't import `state/`, `editor/`, or `doc/`. Pass data in through props (e.g. `QuotaLights` gets `usedBytes` / `quotaBytes`).
+- Interactivity in `doc/*` (the carousel) must also work in the export, so it's duplicated in plain JS in `utils/exportScript.js`. It relies on: `[data-zoom-group]` (one per section, holds its own `.lightbox`), `.doc__zoom` (+ `data-title`, `data-caption`; DOM order = carousel order), `.lightbox`, `.lightbox__close`, `.lightbox__nav--prev/--next`, `.lightbox__img`, `.lightbox__count`, `.lightbox__title`, `.lightbox__caption`. If you change them, update `exportScript.js` too.
+- `components/*` is a UI kit: it doesn't import `state/`, `editor/`, or `doc/`. Pass data in through props (e.g. `Lightbox` gets `items` / `index`).
 
 These layer rules are enforced by ESLint (`no-restricted-imports` in `eslint.config.js`).
 
 ### 3. Side effects stay at the edges
 
 - IndexedDB: only in `state/storage.js` and `state/idb.js`. localStorage: only the locale key in `I18nProvider.jsx` (and the one-time legacy read in `storage.js`).
-- File reading and image compression: `utils/files.js`.
+- File reading and image size: `utils/files.js`. Images are **never** compressed or converted.
 - Notifications: `utils/toast.js` (a global queue, callable outside React).
 
 ## Data model
@@ -93,7 +92,7 @@ Defined in `state/model.js#emptyProject`:
   meta:     { showName, venue, date, ld, director, console, logo },   // logo: dataURL | null
   times:    { installation, focus, runtime, staff: [{ id, role, qty }] },
   plots:    { base, show },                                           // dataURL | null
-  photos:   [{ id, src, tag, caption, order }],
+  photos:   [{ id, src, tag, caption, order, width, height }],       // width/height: pixels, for the mosaic
   fixtures: [{ id, type, qty, info }],
   cues:     [{ id, num, name, info, cmd, fade, trigger }],            // trigger: "Go" | "Follow" | "Time <t>" | ...
   commentary: "",                                                      // markdown
@@ -112,18 +111,23 @@ Everything lives in **IndexedDB** (database `tld`, version 2). Schema version of
 | `blobs` | `photo:<photo.id>`, `plot:base`, `plot:show`, `logo` | `{ id, blob, mime, bytes }` |
 
 - **Save** (`storage.save`): runs from `ProjectProvider` on every `project` change (the first change after load is skipped). Saves are **queued and coalesced**: while one write runs, newer projects only replace the pending one, and only the latest gets written. One write = **one transaction over both stores** (all or nothing): the JSON, new/changed images, and deletes of removed images. An image is re-encoded only if its dataURL changed (compared with `===` against what was written). Errors go to the handler from `storage.setErrorHandler` (toasts in `App.jsx`).
-- **Load** (`storage.load`, async, runs once): read `project`, swap `__blob:` markers back to dataURLs, apply migrations and sanitization (`programmer → director`, add `logo`, add `staff`, normalize `photos`, `cues`, `fixtures`), then delete blobs nothing refers to. It also calls `navigator.storage.persist()` so the browser doesn't evict the data.
+- **Load** (`storage.load`, async, runs once): read `project`, swap `__blob:` markers back to dataURLs, apply migrations and sanitization (`programmer → director`, add `logo`, add `staff`, normalize `photos`, `cues`, `fixtures`), measure `width`/`height` of photos that don't have them yet (projects before v0.4), then delete blobs nothing refers to. It also calls `navigator.storage.persist()` so the browser doesn't evict the data.
 - **Load failure:** if the project can't be read (or has an unknown version), saving is **switched off** for the session and a toast asks for an HTML export. This way an empty project never overwrites the real one.
 - **Legacy migration (≤ v0.3):** the project used to live in localStorage (`tld.project.v1` = `STORAGE_KEY`), with images moved to IDB as `"__idbRef:<id>"` only on overflow. If that key exists, `load` resolves the old markers, writes the new layout, **reads it back and compares**, and only then removes the key and the old blobs. If anything fails, the key stays and the migration runs again next time.
-- **Quota UI:** `useQuotaWatch` asks `navigator.storage.estimate()` (via `storage.estimate()`) ~0.8 s after a change; warn ≥ 60%, err ≥ 85% of the browser quota.
+- **Low-space warning:** IndexedDB is plain files in the browser profile on disk; nothing is reserved. The browser only names a ceiling (quota, usually a share of the disk). `useSpaceWarning` asks `storage.estimate()` right away on open, then ~0.8 s after each change, and shows one sticky toast when quota − usage < 1 GB. It goes away by itself when space comes back, and warns again on the next drop. No meter in the UI: the ceiling scales with the disk, so a bar mostly confuses.
 
 ## Export flow
 
 `exportDocument(project)` in `utils/exportHtml.jsx`:
 
-1. `renderToStaticMarkup(<I18nProvider initialLocale="ru"><DocumentView/></I18nProvider>)`. Images are already dataURLs in memory, so they end up inline.
+1. `renderExportHTML(project)`: `renderToStaticMarkup(<I18nProvider initialLocale="ru"><DocumentView/></I18nProvider>)`. Images are already dataURLs in memory, so they end up inline.
 2. Wrap in a full HTML page with the CSS from `window.__INJECTED_CSS__` (snapshot taken in `main.jsx`) and `EXPORT_RUNTIME_JS`.
 3. Download as `<showName>.html`.
+
+## Gallery and carousel
+
+- **Mosaic** (`doc/DocGallery.jsx`, `.doc__mosaic` / `.doc__tile`): "justified rows". Each tile has `--ar` = width / height and `flex: var(--ar) 1 calc(var(--ar) * var(--gallery-row-h))`. Free space in a row is shared in proportion to `--ar`, so all tiles in a row get the same height and no photo is cropped. `.doc__mosaic::after` with a huge `flex-grow` keeps the last row from stretching. `max-width` is also proportional to `--ar` (× `--gallery-row-max`), so tiles of a row hit it together and a lonely photo in a row doesn't blow up. Photos without a size use 4:3.
+- **Carousel** (`components/Lightbox.jsx`): `items` + `index` (or `null` = closed). The `<dialog>` markup is always rendered, also in the export, where `exportScript.js` drives it. Gallery and plots are separate groups, each with its own carousel.
 
 ## grandMA2 import
 
@@ -164,6 +168,9 @@ See `docs/I18N.md`.
 
 - Storage moved to IndexedDB only (project + images as Blobs), one-time migration from localStorage, no more adaptive compression
 - Fixed: IndexedDB grew on every save after the first overflow
+- Gallery is a mosaic (justified rows, no cropping); click opens a full-screen carousel (buttons, arrow keys, swipe, counter), also in the export; plots use the same carousel
+- Images are stored as is: no compression, PNG stays PNG; photos store their pixel size
+- Storage indicator removed (the three quota dots); instead a sticky toast warns when less than 1 GB is left
 
 ### v0.3.0 (2026-08-15)
 

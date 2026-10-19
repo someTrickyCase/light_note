@@ -6,7 +6,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { I18nProvider } from "../i18n/I18nProvider.jsx";
 import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
-import { pushToast } from "./toast.js";
 import { makeTranslator } from "../i18n/translate.js";
 import { EXPORT_RUNTIME_JS } from "./exportScript.js";
 
@@ -40,20 +39,7 @@ const EXPORT_LOCALE = "ru";
 
 export function exportDocument(project) {
 	if (!project) { return; }
-	if (typeof renderToStaticMarkup !== "function") {
-		pushToast({
-			tone: "err",
-			msg: makeTranslator(EXPORT_LOCALE).t("export.unavailable"),
-		});
-		return;
-	}
-	const html = renderToStaticMarkup(
-		<I18nProvider initialLocale={EXPORT_LOCALE}>
-			<DocumentView project={project} />
-		</I18nProvider>,
-	);
-	const full = buildExportHTML(html, project);
-	const blob = new Blob([full], { type: "text/html;charset=utf-8" });
+	const blob = new Blob([renderExportHTML(project)], { type: "text/html;charset=utf-8" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
@@ -66,6 +52,16 @@ export function exportDocument(project) {
 	a.click();
 	a.remove();
 	setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Полный standalone HTML документа (строка). Отдельно от exportDocument — для тестов.
+export function renderExportHTML(project) {
+	const body = renderToStaticMarkup(
+		<I18nProvider initialLocale={EXPORT_LOCALE}>
+			<DocumentView project={project} />
+		</I18nProvider>,
+	);
+	return buildExportHTML(body, project);
 }
 
 function buildExportHTML(body, project) {

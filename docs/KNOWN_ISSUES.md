@@ -5,11 +5,14 @@ Ordered by priority.
 
 ## Bugs
 
-### 1. "Заменить" (replace) skips image compression (medium)
+### 1. Hundreds of heavy photos: memory and export hit hard limits (high)
 
-`src/editor/MetaSection.jsx`, `src/editor/PlotsSection.jsx`. The first upload goes through `FileDrop` (compressed), but "Заменить" uses `readAsDataURL` directly, so a 10 MB photo goes straight into storage.
+Without compression, artists will load many big photos (a 24 MP JPEG ≈ 10 MB). Storage (IndexedDB, quota ≈ a share of the free disk) is fine with that, but two other limits are not:
 
-Fix idea: reuse `compressImage`, or open a `FileDrop` picker instead. (Will likely go away: the next stage drops compression.)
+- **Memory:** every image lives in React state as a base64 **string** (+33%). 300 × 10 MB ≈ 4 GB of strings → the tab may crash.
+- **Export:** `renderExportHTML` builds the whole HTML as **one string**. V8 strings are capped at ~512 MB (2^29 chars), so a big gallery can't be exported at all.
+
+Fix idea: keep images as `Blob`s in memory and show them via `URL.createObjectURL` (no base64 copies); build the export as a `Blob` from parts (HTML chunks + each image's base64 written separately), never one string. Needs a measured test with a real set of heavy photos.
 
 ### 2. MA2: `<Number/>` without the `number` attribute becomes cue 0 (low)
 
@@ -21,7 +24,7 @@ Fix idea: reuse `compressImage`, or open a `FileDrop` picker instead. (Will like
 
 ## Cleanup
 
-- **Stylelint** for CSS: raw hex/rgba values are still in `src/styles/*.css` outside `tokens.css` (e.g. `.drop` backgrounds, lightbox colors).
+- **Stylelint** for CSS: raw hex/rgba values are still in `src/styles/*.css` outside `tokens.css` (e.g. `.drop` backgrounds). `document.css` is clean.
 - `--sh-accent` and `--c-accent-t` in `tokens.css` are still based on the **old orange** accent; the accent is purple now.
 - `dict.js` has emoji (⚠ 🔴 ✓) against rule 4 in `docs/I18N.md`. Decide: drop them, or change the rule.
 - No favicon: the browser logs a harmless `favicon.ico` 404. Fix: `<link rel="icon" href="data:,">` in `index.html`.
@@ -30,12 +33,13 @@ Fix idea: reuse `compressImage`, or open a `FileDrop` picker instead. (Will like
 
 ## Testing
 
-Vitest in a real browser (`npm test`, see README → Tests). Covered so far: the storage layer (`state/storage.js`, `state/idb.js`, `utils/storageQuota.js`, `utils/useQuotaWatch.js`, `components/QuotaLights.jsx`), 59 tests, ~100% lines / ~98% branches.
+Vitest in a real browser (`npm test`, see README → Tests). 112 tests, ~100% lines / ~99% branches on the covered modules:
+storage (`state/storage.js`, `state/idb.js`, `utils/storageQuota.js`, `utils/useSpaceWarning.js`), gallery and carousel (`doc/DocGallery.jsx`, `doc/DocPlots.jsx`, `doc/ZoomImage.jsx`, `components/Lightbox.jsx`, including the mosaic layout with the real CSS), export (`utils/exportHtml.jsx` + the vanilla runtime in an iframe), upload (`components/FileDrop.jsx`, `utils/files.js`).
 
 Not covered yet (next candidates, in order):
 
 - `parseMA2`: needs a **real grandMA2 XML export** in `tests/fixtures/`
 - `projectReducer`, `renderMarkdown`: the old throwaway characterization cases (60/60 and 14/14) should become real tests
-- export: render → standalone HTML → open from `file://`
+- editor sections (`src/editor/*`) and the rest of `src/doc/*`
 
 ⚠️ Lesson learned: `parseMA2` must be tested with a **real** DOM. linkedom ignores XML namespaces, so it missed a bug that broke import completely (an autofix changed the namespace URI to `https`).

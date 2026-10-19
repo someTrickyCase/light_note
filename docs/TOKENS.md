@@ -43,6 +43,16 @@ Each status has three tokens: the color, `-bg` (background), and `-bd` (border).
 | `--c-err` | `err / err-bg / err-bd` | validation errors |
 | `--c-info` | `info / info-bg / info-bd` | info toasts |
 
+### Overlay colors (full-screen carousel)
+
+| Token | Value | Used for |
+|---|---|---|
+| `--c-backdrop` | `rgba(0,0,0,.88)` | dark background behind the photo |
+| `--c-on-overlay` | `#ffffff` | text and icons on it |
+| `--c-overlay-btn` / `--c-overlay-btn-h` | `rgba(0,0,0,.4)` / `.7` | ✕ ‹ › buttons / hover |
+| `--c-overlay-line` | `rgba(255,255,255,.4)` | button border |
+| `--sh-on-overlay` | text shadow | caption readability on any photo |
+
 ### Typography
 
 Fonts are **system font stacks**: no web fonts, so nothing is loaded from the network.
@@ -75,6 +85,7 @@ Line heights: `--lh-tight` 1.1, `--lh-snug` 1.25, `--lh-normal` 1.5, `--lh-loose
 ### Layout
 
 `--container` 1280px, `--header-h` 60px, `--side-w` 420px (editor panel width).
+`--gallery-row-h` 180px, `--gallery-row-h-sm` 110px (phones ≤600px): row height of the gallery mosaic. `--gallery-row-max` 1.6: a row grows at most 1.6× that height (stops a lonely photo from filling the screen).
 
 ## Example: change the branding
 

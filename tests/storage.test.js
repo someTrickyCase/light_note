@@ -71,7 +71,7 @@ describe("storage: save + load round trip", () => {
 		const original = project({
 			meta: { showName: "Hamlet", logo: GREEN },
 			plots: { base: RED, show: BLUE },
-			photos: [photo("p1", BLUE, { tag: "Mac Quantum #5" }), photo("p2", RED)],
+			photos: [photo("p1", BLUE, { tag: "Mac Quantum #5", width: 30, height: 40 }), photo("p2", RED, { width: 40, height: 30 })],
 			cues: [{ id: "c1", num: 1, name: "Preset", info: "", cmd: "", fade: "3", trigger: "Go" }],
 			commentary: "**bold**",
 		});
@@ -418,6 +418,49 @@ describe("storage: migration from localStorage (≤ v0.3)", () => {
 	it("legacy that is literally null/empty is treated as no legacy", async () => {
 		localStorage.setItem(LEGACY_KEY, "");
 		expect((await loaded()).loadedProject).toEqual(emptyProject());
+	});
+});
+
+describe("storage: photo sizes for the mosaic (projects before v0.4)", () => {
+	const seedSaved = (photos) => putRaw(2, (database) => {
+		database.createObjectStore("blobs", { keyPath: "id" });
+		database.createObjectStore("project");
+	}, (t) => { t.objectStore("project").put({ ...project(), photos }, "current"); });
+
+	it("measures photos that have no size yet", async () => {
+		await seedSaved([photo("p1", RED), photo("p2", BLUE)]);
+		const { loadedProject } = await loaded();
+		expect(loadedProject.photos.map(({ width, height }) => [width, height])).toEqual([[40, 30], [30, 40]]);
+	});
+
+	it("the size is saved with the next save (images are not re-written)", async () => {
+		await seedSaved([photo("p1", RED)]);
+		const { storage, loadedProject } = await loaded();
+		await storage.save(loadedProject);
+		expect((await dumpDB()).project.photos[0]).toMatchObject({ width: 40, height: 30 });
+	});
+
+	it("keeps a size that is already there (no re-measure)", async () => {
+		await seedSaved([photo("p1", RED, { width: 4000, height: 3000 })]);
+		const { loadedProject } = await loaded();
+		expect(loadedProject.photos[0]).toMatchObject({ width: 4000, height: 3000 });
+	});
+
+	it("a broken or empty picture stays without size, and load still works", async () => {
+		await seedSaved([photo("p1", "data:image/png;base64,AAAA"), photo("p2", ""), photo("p3", GREEN, { width: 0, height: 0 })]);
+		const { loadedProject, errors } = await loaded();
+		expect(errors).toEqual([]);
+		expect(loadedProject.photos[0]).not.toHaveProperty("width");
+		expect(loadedProject.photos[1]).not.toHaveProperty("width");
+		expect(loadedProject.photos[2]).toMatchObject({ width: 50, height: 20 }); // 0×0 = неизвестно → меряем
+	});
+
+	it("legacy migration also adds the sizes", async () => {
+		localStorage.setItem(LEGACY_KEY, JSON.stringify({ ...project(), photos: [photo("p1", BLUE)] }));
+		const { loadedProject, errors } = await loaded();
+		expect(errors).toEqual([]);
+		expect(loadedProject.photos[0]).toMatchObject({ width: 30, height: 40 });
+		expect((await dumpDB()).project.photos[0]).toMatchObject({ width: 30, height: 40 });
 	});
 });
 
