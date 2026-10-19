@@ -8,11 +8,11 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Show metadata** — title, venue, date, lighting designer, director, console, logo
 - **Time** — installation, focus, runtime, staff (per role, with auto-sum and capacity notes)
 - **Plots** — base + show (JPG/PNG capture)
-- **Fixture gallery** — photos with tags, captions, document carousel with prev/next navigation and click-to-zoom
+- **Fixture gallery** — mosaic that keeps every photo's shape (no cropping), tags and captions; click opens a full-screen carousel (‹ ›, arrow keys, swipe)
 - **Fixtures for additional rig** — name, quantity, free-form info, with reorder and auto-sum
 - **Cue list** — grandMA2 XML import, auto-numbering, fade, trigger (Go/Follow/Time), description, macro command
 - **Commentary** — markdown editor with toolbar (bold, italic, H3, list, quote, link)
-- **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive gallery/lightbox via inline vanilla JS)
+- **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive carousel via inline vanilla JS)
 - **Autosave** — IndexedDB (project + images as Blobs), saves coalesced, nothing leaves the browser
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
@@ -33,12 +33,12 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 ```
 .
 ├── src/
-│   ├── components/   — UI kit: Button, Chip, Badge, Field, Toaster, FileDrop, GrowTextarea, Lightbox, QuotaLights
+│   ├── components/   — UI kit: Button, Chip, Badge, Field, Toaster, FileDrop, GrowTextarea, Lightbox
 │   ├── editor/       — left-panel sections (input)
 │   ├── doc/          — DocumentView + subcomponents (rendered output)
 │   ├── i18n/         — dict.js + I18nProvider
 │   ├── state/        — model, reducer, storage (IDB), idb, ProjectProvider
-│   ├── utils/        — files, toast, ma2 parser, storageQuota, useQuotaWatch, exportHtml, exportScript
+│   ├── utils/        — files, toast, ma2 parser, storageQuota, useSpaceWarning, exportHtml, exportScript
 │   ├── styles/       — tokens, base, components, layout, document, print
 │   ├── App.jsx
 │   └── main.jsx
@@ -94,14 +94,14 @@ The custom Vite plugin (`inlineCssPlugin` in `vite.config.js`) inlines all CSS i
 2. Drop into any static host (GitHub Pages, Netlify, S3, nginx).
 3. Embed inside a larger app via `<iframe>`.
 
-The exported single-file HTML (downloaded via "↓ HTML" button) is a self-contained document with inlined CSS, base64 photos, and an inline `<script>` (~2 KB) for interactive gallery + lightbox.
+The exported single-file HTML (downloaded via "↓ HTML" button) is a self-contained document with inlined CSS, base64 photos, and an inline `<script>` (~3 KB) for the full-screen carousel.
 
 ## Data storage
 
 - **IndexedDB** — the project JSON and every image (photos, plots, logo) as a Blob under a stable key. One project per origin. The browser is asked to keep the data persistent.
 - **Migration** — projects from v0.3 and older (localStorage) are moved to IndexedDB once, on first load, and checked before the old copy is removed.
-- **Compression** — images are resized to 1920 px on the long side and saved as JPEG 0.82.
-- **Quota indicator** — three lights in the preview frame header (ok / warn / err) showing real browser usage from `navigator.storage.estimate()`, with hover tooltips and a toast on threshold transitions.
+- **No compression** — images are stored and exported exactly as uploaded (PNG stays PNG). Big camera photos make big exports: ~10 MB per 24 MP photo.
+- **Low-space warning** — a toast that stays until closed when less than 1 GB of browser storage is left (from `navigator.storage.estimate()`).
 - **localStorage** — only the UI locale (`tld.locale.v1`).
 
 No data leaves the browser. Clearing site data erases everything.
