@@ -3,7 +3,8 @@ import "../src/styles/index.css";
 import indexHtml from "../index.html?raw";
 import { FONTS, PREFERENCES, THEMES, apply, applySaved, readSaved, useAppearance } from "../src/utils/appearance.js";
 import { Topbar } from "../src/Topbar.jsx";
-import { I18nProvider } from "../src/i18n/I18nProvider.jsx";
+import { DEFAULT_LOCALE, I18nProvider } from "../src/i18n/I18nProvider.jsx";
+import { SUPPORTED_LOCALES } from "../src/i18n/dict.js";
 import { ProjectProvider } from "../src/state/ProjectProvider.jsx";
 import { storage } from "../src/state/storage.js";
 import { emptyProject } from "../src/state/model.js";
@@ -110,10 +111,10 @@ describe("theme and font in the header menu", () => {
 		await run(() => container.querySelector(".menu__button").click());
 		const choice = (label) => [...container.querySelectorAll("[role=menuitemradio]")].find((item) => item.textContent === label);
 		const checked = () => [...container.querySelectorAll("[role=menuitemradio][aria-checked=true]")].map((item) => item.textContent);
-		expect(checked()).toEqual([t("appearance.theme.graphite"), t("appearance.font.sans")]);
+		expect(checked()).toEqual([t("appearance.theme.graphite"), t("appearance.font.sans"), "Русский"]);
 		await run(() => choice(t("appearance.theme.midnight")).click());
 		await run(() => choice(t("appearance.font.serif")).click());
-		expect(checked()).toEqual([t("appearance.theme.midnight"), t("appearance.font.serif")]);
+		expect(checked()).toEqual([t("appearance.theme.midnight"), t("appearance.font.serif"), "Русский"]);
 		expect([root.dataset.theme, root.dataset.font]).toEqual(["midnight", "serif"]);
 		expect(container.querySelector("[role=menu]")).not.toBeNull();
 		// в списке нет значков: только текст из словаря
@@ -144,41 +145,70 @@ describe("CSS: what themes and fonts change", () => {
 		}
 	});
 
-	it("serif changes the text and heading fonts, mono stays mono", () => {
-		const mono = token("--ff-mono");
+	it("fonts: Arimo text, Oswald headings, Yeseva One title; serif swaps only the text", () => {
+		const before = { display: token("--ff-display"), title: token("--ff-title"), mono: token("--ff-mono") };
+		expect(token("--ff-text")).toMatch(/^"Arimo"/);
+		expect(before.display).toMatch(/^"Oswald"/);
+		expect(before.title).toMatch(/^"Yeseva One"/);
 		apply("font", "serif");
-		expect(token("--ff-text")).toMatch(/serif$/);
-		expect(token("--ff-text")).toContain("Georgia");
-		expect(token("--ff-display")).toBe(token("--ff-text"));
-		expect(token("--ff-mono")).toBe(mono);
-		apply("font", "sans");
-		expect(token("--ff-text")).not.toContain("Georgia");
+		expect(token("--ff-text")).toMatch(/^"Old Standard TT".*serif$/);
+		expect({ display: token("--ff-display"), title: token("--ff-title"), mono: token("--ff-mono") }).toEqual(before);
 	});
 
-	it("all theme and font rules live inside @media screen, so print is standard", () => {
+	it("the show title uses Yeseva One in one real weight (no fake bold)", () => {
+		const title = document.createElement("h1");
+		title.className = "doc__title";
+		document.body.append(title);
+		expect(getComputedStyle(title).fontFamily).toMatch(/^"Yeseva One"/);
+		expect(getComputedStyle(title).fontWeight).toBe("400");
+		title.remove();
+	});
+
+	it("all four fonts are built in: they load without the network", async () => {
+		const checks = ["Arimo", "Oswald", "Old Standard TT", "Yeseva One"].flatMap((family) =>
+			["Light", "Свет"].map(async (text) => { // latin и cyrillic — отдельные файлы
+				const faces = await document.fonts.load(`16px "${family}"`, text);
+				return [`${family} · ${text}`, faces.length > 0];
+			}));
+		const missing = (await Promise.all(checks)).filter(([, loaded]) => !loaded).map(([name]) => name);
+		expect(missing).toEqual([]);
+		const bold = await document.fonts.load('700 16px "Old Standard TT"', "Свет");
+		expect(bold.map((face) => face.weight)).toEqual(["700"]);
+	});
+
+	it("theme rules live inside @media screen (print is light); the font rule doesn't (print follows it)", () => {
 		const rules = [...document.styleSheets].flatMap((sheet) => [...sheet.cssRules]);
 		const flat = rules.flatMap((rule) => (rule instanceof CSSMediaRule
 			? [...rule.cssRules].map((inner) => ({ inner, media: rule.media.mediaText }))
 			: [{ inner: rule, media: "" }]));
-		const themed = flat.filter(({ inner }) => /data-(theme|font)=/.test(inner.selectorText ?? ""));
-		expect(themed.length).toBeGreaterThanOrEqual(5);
-		for (const { media } of themed) { expect(media).toBe("screen"); }
+		const media = (pattern) => flat.filter(({ inner }) => pattern.test(inner.selectorText ?? "")).map((rule) => rule.media);
+		expect(media(/data-theme=/).length).toBeGreaterThanOrEqual(4);
+		expect(new Set(media(/data-theme=/))).toEqual(new Set(["screen"]));
+		expect(media(/data-font=/)).toEqual([""]);
 	});
 
-	it("the export stays white and sans whatever the app shows", async () => {
-		apply("theme", "tungsten");
-		apply("font", "serif");
-		const html = await renderExportHTML(emptyProject());
-		expect(html).not.toMatch(/<html[^>]*data-(theme|font)/); // правила в CSS есть, атрибутов нет — не сработают
+	async function showInIframe(html) {
 		const iframe = document.createElement("iframe");
 		document.body.append(iframe);
 		await new Promise((resolve) => {
 			iframe.addEventListener("load", resolve, { once: true });
 			iframe.srcdoc = html;
 		});
-		expect(getComputedStyle(iframe.contentDocument.body).backgroundColor).toBe("rgb(255, 255, 255)");
-		expect(getComputedStyle(iframe.contentDocument.body).fontFamily).not.toContain("Georgia");
+		const body = getComputedStyle(iframe.contentDocument.body);
+		const result = { background: body.backgroundColor, font: body.fontFamily };
 		iframe.remove();
+		return result;
+	}
+
+	it("the export stays white whatever the app shows, and uses the chosen font", async () => {
+		apply("theme", "tungsten");
+		const sans = await renderExportHTML(emptyProject());
+		expect(sans).not.toMatch(/<html[^>]*data-theme/); // правила тем в CSS есть, атрибута нет — не сработают
+		expect(sans).toMatch(/<html[^>]*data-font="sans"/);
+		expect(await showInIframe(sans)).toEqual({ background: "rgb(255, 255, 255)", font: expect.stringMatching(/^"?Arimo/) });
+		const serif = await renderExportHTML(emptyProject(), { font: "serif" });
+		expect(serif).toMatch(/<html[^>]*data-font="serif"/);
+		expect(await showInIframe(serif)).toEqual({ background: "rgb(255, 255, 255)", font: expect.stringMatching(/^"Old Standard TT"/) });
 	});
 });
 
@@ -233,19 +263,21 @@ describe("index.html head script (no flash)", () => {
 		const element = { dataset: {} };
 		// eslint-disable-next-line no-new-func -- нарочно выполняем скрипт из <head>, чтобы проверить его поведение
 		new Function("localStorage", "document", script)({ getItem }, { documentElement: element });
-		return element.dataset;
+		return { ...element.dataset, lang: element.lang };
 	}
+	const DEFAULTS = { theme: "graphite", font: "sans", lang: "ru" };
 	const saved = (values) => (key) => values[key] ?? null;
 
-	it("knows the same keys, lists and defaults as utils/appearance.js", () => {
+	it("knows the same keys, lists and defaults as utils/appearance.js and i18n/dict.js", () => {
 		expect(script).toContain(`"${THEME_KEY}", ${JSON.stringify(THEMES).replaceAll(",", ", ")}, "graphite"`);
 		expect(script).toContain(`"${FONT_KEY}", ${JSON.stringify(FONTS).replaceAll(",", ", ")}, "sans"`);
-		expect(runHeadScript(() => null)).toEqual({ theme: "graphite", font: "sans" });
+		expect(script).toContain(`"tld.locale.v1", ${JSON.stringify(SUPPORTED_LOCALES).replaceAll(",", ", ")}, "${DEFAULT_LOCALE}"`);
+		expect(runHeadScript(() => null)).toEqual(DEFAULTS);
 		for (const theme of THEMES) {
-			expect(runHeadScript(saved({ [THEME_KEY]: theme, [FONT_KEY]: "serif" }))).toEqual({ theme, font: "serif" });
+			expect(runHeadScript(saved({ [THEME_KEY]: theme, [FONT_KEY]: "serif", "tld.locale.v1": "en" }))).toEqual({ theme, font: "serif", lang: "en" });
 		}
 		expect(runHeadScript(saved({ [THEME_KEY]: "dark" })).theme).toBe("graphite");
-		expect(runHeadScript(saved({ [THEME_KEY]: "garbage", [FONT_KEY]: "comic" }))).toEqual({ theme: "graphite", font: "sans" });
-		expect(runHeadScript(() => { throw new Error("denied"); })).toEqual({ theme: "graphite", font: "sans" });
+		expect(runHeadScript(saved({ [THEME_KEY]: "garbage", [FONT_KEY]: "comic", "tld.locale.v1": "fr" }))).toEqual(DEFAULTS);
+		expect(runHeadScript(() => { throw new Error("denied"); })).toEqual(DEFAULTS);
 	});
 });
