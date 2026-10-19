@@ -29,7 +29,8 @@ They have no data block, so "Открыть HTML…" says so instead of guessing
 
 ## Cleanup
 
-- **Stylelint** for CSS: raw hex/rgba values are still in `src/styles/*.css` outside `tokens.css` (e.g. `.drop` backgrounds). `document.css` is clean.
+- **Stylelint** for CSS, to *enforce* "raw colors only in `tokens.css`". Today the rule holds (all raw colors moved to tokens with the dark theme), but nothing checks it.
+- **Light-theme contrast (needs a design decision):** white text on the lilac accent (primary buttons, e.g. "Скачать текущий и продолжить" in the replace dialog) is 2.5:1, lilac text on white (photo tags, document eyebrow; also in the export) is below 3:1. WCAG wants 4.5 / 3. Fix = dark text on the accent and/or a darker accent for text. Pinned in `tests/appearance.test.jsx` → `KNOWN_WEAK`. The other four themes pass.
 - `--sh-accent` and `--c-accent-t` in `tokens.css` are still based on the **old orange** accent; the accent is purple now.
 - `dict.js` has emoji (⚠ 🔴 ✓) against rule 4 in `docs/I18N.md`. Decide: drop them, or change the rule.
 - No favicon: the browser logs a harmless `favicon.ico` 404. Fix: `<link rel="icon" href="data:,">` in `index.html`.
@@ -38,8 +39,8 @@ They have no data block, so "Открыть HTML…" says so instead of guessing
 
 ## Testing
 
-Vitest in a real browser (`npm test`, see README → Tests). 149 tests, ~100% lines / ~99% branches on the covered modules:
-storage (`state/storage.js`, `state/idb.js`, `utils/storageQuota.js`, `utils/useSpaceWarning.js`), gallery and carousel (`doc/DocGallery.jsx`, `doc/DocPlots.jsx`, `doc/ZoomImage.jsx`, `components/Lightbox.jsx`, including the mosaic layout with the real CSS), export (`utils/exportHtml.jsx` + the vanilla runtime in an iframe), upload (`components/FileDrop.jsx`, `utils/files.js`), open HTML (`utils/projectFile.js`, `utils/imageKey.js`, `utils/useHtmlDrop.js`, `Topbar.jsx`, `components/Menu.jsx`, `components/ChoiceDialog.jsx`).
+Vitest in a real browser (`npm test`, see README → Tests). 171 tests, ~100% lines / ~99% branches on the covered modules:
+storage (`state/storage.js`, `state/idb.js`, `utils/storageQuota.js`, `utils/useSpaceWarning.js`), gallery and carousel (`doc/DocGallery.jsx`, `doc/DocPlots.jsx`, `doc/ZoomImage.jsx`, `components/Lightbox.jsx`, including the mosaic layout with the real CSS), export (`utils/exportHtml.jsx` + the vanilla runtime in an iframe), upload (`components/FileDrop.jsx`, `utils/files.js`), open HTML (`utils/projectFile.js`, `utils/imageKey.js`, `utils/useHtmlDrop.js`, `Topbar.jsx`, `components/Menu.jsx`, `components/ChoiceDialog.jsx`), appearance (`utils/appearance.js`, the `index.html` head script, theme and font rules inside `@media screen`, export stays white and sans, WCAG contrast of token pairs in every theme).
 
 Not covered yet (next candidates, in order):
 

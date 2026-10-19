@@ -13,11 +13,12 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Cue list** — grandMA2 XML import, auto-numbering, fade, trigger (Go/Follow/Time), description, macro command
 - **Commentary** — markdown editor with toolbar (bold, italic, H3, list, quote, link)
 - **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive carousel via inline vanilla JS)
-- **Open & edit an export** — "Файл → Открыть HTML…" (or drop the .html on the window) loads the project back from an exported file, pictures included. Works for files exported by this version and newer.
+- **Open & edit an export** — "Меню → Открыть HTML…" (or drop the .html on the window) loads the project back from an exported file, pictures included. Works for files exported by this version and newer.
 - **Autosave** — IndexedDB (project + images as Blobs), saves coalesced, nothing leaves the browser
+- **Themes and font** — five themes (Графит by default, Полночь, Вольфрам, Светлая, Бумага) and sans / serif text, chosen in the header "Меню" and remembered in the browser. The exported HTML and print always stay white, in the standard font.
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
-- **Accessible** — images, chips, drop zones and the "Файл" menu work with the keyboard; destructive actions ask first
+- **Accessible** — images, chips, drop zones and the header menu work with the keyboard; destructive actions ask first
 - **i18n** — Russian only for now, dictionary isolated in `src/i18n/dict.js`, ready for additional locales
 
 ## Tech stack
@@ -103,7 +104,7 @@ The exported single-file HTML (downloaded via "↓ HTML" button) is a self-conta
 - **Migration** — projects from v0.3 and older (localStorage) are moved to IndexedDB once, on first load, and checked before the old copy is removed.
 - **No compression** — images are stored and exported exactly as uploaded (PNG stays PNG). Big camera photos make big exports: ~10 MB per 24 MP photo.
 - **Low-space warning** — a toast that stays until closed when less than 1 GB of browser storage is left (from `navigator.storage.estimate()`).
-- **localStorage** — only the UI locale (`tld.locale.v1`).
+- **localStorage** — only UI settings: locale (`tld.locale.v1`), theme (`tld.theme.v1`) and font (`tld.font.v1`).
 
 No data leaves the browser. Clearing site data erases everything.
 
