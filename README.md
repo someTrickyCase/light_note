@@ -15,11 +15,11 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Export** — single-file HTML (CSS inlined, photos embedded as base64, interactive carousel via inline vanilla JS)
 - **Open & edit an export** — "Меню → Открыть HTML…" (or drop the .html on the window) loads the project back from an exported file, pictures included. Works for files exported by this version and newer.
 - **Autosave** — IndexedDB (project + images as Blobs), saves coalesced, nothing leaves the browser
-- **Themes and font** — five themes (Графит by default, Полночь, Вольфрам, Светлая, Бумага) and sans / serif text, chosen in the header "Меню" and remembered in the browser. The exported HTML and print always stay white, in the standard font.
+- **Themes and fonts** — five themes (Графит by default, Полночь, Вольфрам, Светлая, Бумага), chosen in the header "Меню" and remembered. Fonts are built in (offline): Oswald headings, Yeseva One show title, Arimo or Old Standard TT text. The exported HTML and print always stay white and use the chosen font.
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
 - **Accessible** — images, chips, drop zones and the header menu work with the keyboard; destructive actions ask first
-- **i18n** — Russian only for now, dictionary isolated in `src/i18n/dict.js`, ready for additional locales
+- **Russian and English** — switch in "Меню" → Язык (Russian by default, remembered). The exported document is written in the current language. Phrases: `src/i18n/locales/ru.js`, `en.js`
 
 ## Tech stack
 
@@ -38,7 +38,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 │   ├── components/   — UI kit: Button, Chip, Badge, Field, Toaster, FileDrop, GrowTextarea, Lightbox, Menu, ChoiceDialog
 │   ├── editor/       — left-panel sections (input)
 │   ├── doc/          — DocumentView + subcomponents (rendered output)
-│   ├── i18n/         — dict.js + I18nProvider
+│   ├── i18n/         — dict.js, locales/ (ru.js, en.js) + I18nProvider
 │   ├── state/        — model, reducer, storage (IDB), idb, ProjectProvider
 │   ├── utils/        — files, toast, ma2 parser, storageQuota, useSpaceWarning, exportHtml, exportScript
 │   ├── styles/       — tokens, base, components, layout, document, print
@@ -189,7 +189,7 @@ git push origin v0.3.0
 
 - The **editor** and **preview** are siblings in `App.jsx` — any change in `src/editor/*` updates the left panel live, any change in `src/doc/*` updates the right panel.
 - Most components take their values from the project context (`useProject()`); mutate through `useDispatch()`.
-- After modifying `src/i18n/dict.js`, no rebuild needed beyond HMR.
+- After modifying `src/i18n/locales/*.js`, no rebuild needed beyond HMR.
 - To test the export flow: click "↓ HTML", open the downloaded file in a separate browser tab. It has no JS dependencies on the dev environment.
 
 ## Documentation

@@ -109,8 +109,8 @@
 .textarea--mono { font-family: var(--ff-mono); font-size: var(--fs-xs); }
 .input--mono { font-family: var(--ff-mono); font-size: var(--fs-xs); }
 .field--err .input, .field--err .textarea, .field--err .select { border-color: var(--c-err); box-shadow: 0 0 0 3px var(--c-err-ring); }
-.field__hint { font-size: 11px; color: var(--c-soft); }
-.field__err  { font-size: 11px; color: var(--c-err); font-weight: 500; }
+.field__hint { font-size: var(--fs-xs); color: var(--c-soft); }
+.field__err  { font-size: var(--fs-xs); color: var(--c-err); font-weight: 500; }
 
 /* ---- card ---- */
 .card {
@@ -142,7 +142,7 @@
 .toast__i {
   width: 20px; height: 20px; border-radius: 50%;
   display: grid; place-items: center;
-  color: var(--c-on-status); font-size: 12px; font-weight: 700;
+  color: var(--c-on-status); font-size: var(--fs-sm); font-weight: 700;
   flex: 0 0 auto;
 }
 .toast--ok   { background: var(--c-green-bg); border-color: var(--c-green-bd); color: var(--c-green-ink); } .toast--ok   .toast__i { background: var(--c-green); }
@@ -162,7 +162,7 @@
   border: 2px solid var(--c-line); border-radius: var(--r-lg);
   margin: 0 auto var(--s-3);
   display: grid; place-items: center;
-  color: var(--c-soft); font-size: 20px;
+  color: var(--c-soft); font-size: var(--fs-icon);
 }
 .empty__t { font-family: var(--ff-display); font-size: var(--fs-lg); font-weight: 600; margin-bottom: 6px; }
 .empty__p { font-size: var(--fs-sm); color: var(--c-ink-2); max-width: 380px; margin: 0 auto var(--s-4); }
@@ -200,7 +200,7 @@
   transition: border-color var(--t-fast) ease, background var(--t-fast) ease;
 }
 .drop:hover, .drop.is-drag { border-color: var(--c-steel); background: var(--c-drop-h); color: var(--c-ink-2); }
-.drop__i { font-size: 18px; margin-bottom: 4px; }
+.drop__i { font-size: var(--fs-xl); margin-bottom: 4px; }
 
 /* ---- divider ---- */
 .divider { height: 1px; background: var(--c-line); margin: var(--s-5) 0; border: 0; }

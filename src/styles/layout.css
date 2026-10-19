@@ -66,10 +66,10 @@
 .editor__title .num {
   background: var(--c-strong); color: var(--c-on-strong); border-radius: var(--r-sm);
   width: 22px; height: 22px; display: grid; place-items: center;
-  font-size: 11px; font-weight: 700;
+  font-size: var(--fs-xs); font-weight: 700;
 }
 .editor__stack > * + * { margin-top: var(--s-3); }
-.editor__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); }
+.editor__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-3); align-items: end; } /* подпись в 2 строки (узкий экран) не сдвигает поле вниз */
 .editor__row--3 { grid-template-columns: 1fr 1fr 1fr; }
 
 @media (max-width: 600px) {
@@ -140,7 +140,7 @@
   min-width: 0;
 }
 .cue-row__cmd-dot {
-  font-size: 9px;
+  font-size: var(--fs-2xs);
   color: var(--c-accent);
   line-height: 1;
 }
@@ -342,7 +342,7 @@
 }
 
 /* ---- editor: элементы, раньше задававшиеся inline-стилями ---- */
-.editor .editor__heading { font-size: var(--fs-2xl); margin-bottom: var(--s-6); }
+.editor .editor__heading { font-family: var(--ff-display); font-weight: 600; font-size: var(--fs-2xl); margin-bottom: var(--s-6); }
 .editor__loading,
 .preview-frame--loading { color: var(--c-soft); font-family: var(--ff-mono); font-size: var(--fs-sm); }
 .preview-frame--loading { min-height: 200px; display: grid; place-items: center; }

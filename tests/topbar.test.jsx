@@ -286,7 +286,7 @@ describe("Topbar: open / new / export", () => {
 	const exported = async (project, name = "show.html") => new File([await renderExportHTML(project)], name, { type: "text/html" });
 	const toasts = () => getToastQueue().map((toast) => ({ tone: toast.tone, msg: toast.msg }));
 
-	it("one menu in the header: import, export, theme, font — text only", async () => {
+	it("one menu in the header: import, export, theme, font, language — text only", async () => {
 		const names = captureDownloads();
 		const { container, menuItem } = await mount(loaded({ meta: { showName: "Гамлет" } }));
 		expect(container.querySelectorAll(".topbar__actions button")).toHaveLength(1);
@@ -301,6 +301,8 @@ describe("Topbar: open / new / export", () => {
 			...["graphite", "midnight", "tungsten", "light", "paper"].map((id) => `menuitemradio:${t(`appearance.theme.${id}`)}`),
 			"separator:", `presentation:${t("menu.font")}`,
 			...["sans", "serif"].map((id) => `menuitemradio:${t(`appearance.font.${id}`)}`),
+			"separator:", `presentation:${t("menu.language")}`,
+			"menuitemradio:Русский", "menuitemradio:English", // всегда на своём языке
 		]);
 		await run(() => button.click());
 		await menuItem(t("menu.export"));

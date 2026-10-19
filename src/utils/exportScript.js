@@ -40,7 +40,7 @@ export const EXPORT_RUNTIME_JS = `
       lb.setAttribute('aria-label', title);
       titleEl.textContent = title;
       captionEl.textContent = btn.getAttribute('data-caption') || '';
-      // same format as "lightbox.count" in i18n/dict.js
+      // same format as "lightbox.count" in i18n/locales/*.js
       countEl.textContent = n > 1 ? (current + 1) + ' / ' + n : '';
     }
     function open(i){

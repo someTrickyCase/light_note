@@ -6,9 +6,9 @@ To change the palette or branding, edit **only that file**. Component styles mus
 
 ## Themes
 
-- `:root` is the **light** theme (+ the sans font). Other themes are `:root[data-theme="…"]` blocks at the end of `tokens.css`: **graphite** (Графит, the app default), **midnight** (Полночь), **tungsten** (Вольфрам) — dark; **paper** (Бумага) — light; `light` (Светлая) has no block, it is `:root`. The three dark themes share one base block (graphite), then each overrides its surfaces, text and accent (same specificity, the later block wins). Dark ones set `color-scheme: dark` (native date pickers, selects and scrollbars follow). The font: `:root[data-font="serif"]` swaps `--ff-text` / `--ff-display` for system serif fonts (offline, nothing is downloaded); mono stays.
-- All theme and font blocks sit inside `@media screen`. So **print is always light and sans**, and so is the **export** (its `<html>` has no `data-theme` / `data-font`, even though it carries the same CSS).
-- `<html data-theme data-font>` is set by `utils/appearance.js` (header "Меню" → Тема / Шрифт, saved in `localStorage` as `tld.theme.v1` / `tld.font.v1`) and, before the first paint, by a tiny script in `index.html` `<head>` (no flash). Keep their keys, lists and defaults in sync; `tests/appearance.test.jsx` runs the head script. **Add a theme:** a block in `tokens.css`, its id in `THEMES` (`appearance.js`) and in the head script, a name `appearance.theme.<id>` in `dict.js`.
+- `:root` is the **light** theme (+ the sans font). Other themes are `:root[data-theme="…"]` blocks at the end of `tokens.css`: **graphite** (Графит, the app default), **midnight** (Полночь), **tungsten** (Вольфрам) — dark; **paper** (Бумага) — light; `light` (Светлая) has no block, it is `:root`. The three dark themes share one base block (graphite), then each overrides its surfaces, text and accent (same specificity, the later block wins). Dark ones set `color-scheme: dark` (native date pickers, selects and scrollbars follow). The font: `:root[data-font="serif"]` swaps only `--ff-text` (Arimo → Old Standard TT); headings, the title and mono stay.
+- Theme blocks sit inside `@media screen`, so **print is always light**, and so is the **export** (its `<html>` has no `data-theme`, even though it carries the same CSS). The **font block is outside** `@media screen`: print follows the chosen font, and the export gets the same `data-font` on its `<html>`.
+- `<html data-theme data-font>` is set by `utils/appearance.js` (header "Меню" → Тема / Шрифт, saved in `localStorage` as `tld.theme.v1` / `tld.font.v1`) and, before the first paint, by a tiny script in `index.html` `<head>` (no flash). Keep their keys, lists and defaults in sync; `tests/appearance.test.jsx` runs the head script. **Add a theme:** a block in `tokens.css`, its id in `THEMES` (`appearance.js`) and in the head script, a name `appearance.theme.<id>` in every `src/i18n/locales/*.js`.
 - **Use tokens by role, not by color.** A component that wants "a strong fill" asks for `--c-strong`, not `--c-graphite`: in the dark theme the strong fill is light. Role tokens:
 
 | Token | Role | Light | Dark |
@@ -74,15 +74,18 @@ Each status has three tokens: the color, `-bg` (background), and `-bd` (border).
 
 ### Typography
 
-Fonts are **system font stacks**: no web fonts, so nothing is loaded from the network.
+Four Google Fonts (SIL Open Font License, texts in `src/fonts/LICENSE.txt`), **built into the app**: the `.woff2` files live in `src/fonts/`, `src/styles/fonts.css` declares them, and the build inlines them into the CSS as `data:` URLs. Nothing is loaded from the network, and the export carries them too (~250 KB). Only the latin and cyrillic subsets; `unicode-range` makes the browser decode only the files whose letters are on the page.
 
-| Token | Stack starts with |
-|---|---|
-| `--ff-display` | `ui-sans-serif, -apple-system, …` (headings) |
-| `--ff-text` | `-apple-system, BlinkMacSystemFont, …` (body text) |
-| `--ff-mono` | `ui-monospace, "SF Mono", "JetBrains Mono", …` (numbers, cue data) |
+| Token | Font | Used for |
+|---|---|---|
+| `--ff-title` | Yeseva One (one weight: 400) | the show title on the document cover |
+| `--ff-display` | Oswald (400–700) | headings, time values, the logo |
+| `--ff-text` | Arimo (400–700 + italic) · serif: Old Standard TT (400, 700, italic) | body text, inputs, buttons |
+| `--ff-mono` | system `ui-monospace, "SF Mono", …` | labels, numbers, cue data |
 
-Sizes: `--fs-xs` 11px, `--fs-sm` 12.5px, `--fs-md` 14px, `--fs-lg` 15px, `--fs-xl` 18px, `--fs-2xl` 22px, `--fs-3xl` 30px, `--fs-4xl` 40px.
+Each stack ends with system fallbacks. **Add or update a font:** put the `.woff2` files in `src/fonts/`, add `@font-face` rules to `fonts.css` (keep `unicode-range`), add its license to `LICENSE.txt`, use it through a token.
+
+Sizes are base values × `--fs-scale` (now **1.1**, i.e. +10%; change it to resize all text in the app, the export and print at once): `--fs-2xs` 9px, `--fs-xs` 11px, `--fs-sm` 12.5px, `--fs-md` 14px, `--fs-lg` 15px, `--fs-xl` 18px, `--fs-icon` 20px, `--fs-2xl` 22px, `--fs-3xl` 30px, `--fs-4xl` 40px. No raw `font-size` in px outside `tokens.css` (`em` for relative sizes is fine).
 Line heights: `--lh-tight` 1.1, `--lh-snug` 1.25, `--lh-normal` 1.5, `--lh-loose` 1.7.
 
 ### Spacing (4px grid)

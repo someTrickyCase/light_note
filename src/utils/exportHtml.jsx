@@ -3,7 +3,7 @@
 // =====================================================================
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { I18nProvider } from "../i18n/I18nProvider.jsx";
+import { DEFAULT_LOCALE, I18nProvider } from "../i18n/I18nProvider.jsx";
 import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
 import { makeTranslator } from "../i18n/translate.js";
@@ -35,12 +35,13 @@ function getTokensCSS() {
 	return css;
 }
 
-// Экспорт пока только на русском. При добавлении языков — передавать текущую локаль.
-const EXPORT_LOCALE = "ru";
+// Язык и шрифт документа — как сейчас в приложении (передаёт Topbar).
+// Тема — нет: экспорт всегда светлый (у <html> нет data-theme).
+const DEFAULTS = { locale: DEFAULT_LOCALE, font: "sans" };
 
-export async function exportDocument(project) {
+export async function exportDocument(project, options) {
 	if (!project) { return; }
-	const blob = new Blob([await renderExportHTML(project)], { type: "text/html;charset=utf-8" });
+	const blob = new Blob([await renderExportHTML(project, options)], { type: "text/html;charset=utf-8" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
@@ -57,20 +58,21 @@ export async function exportDocument(project) {
 
 // Полный standalone HTML документа (строка). Отдельно от exportDocument — для тестов.
 // Внутри — данные проекта, чтобы файл можно было снова открыть (utils/projectFile.js).
-export async function renderExportHTML(project) {
+export async function renderExportHTML(project, options) {
+	const { locale, font } = { ...DEFAULTS, ...options };
 	const body = renderToStaticMarkup(
-		<I18nProvider initialLocale={EXPORT_LOCALE}>
+		<I18nProvider initialLocale={locale}>
 			<DocumentView project={project} />
 		</I18nProvider>,
 	);
-	return buildExportHTML(body, project, await renderProjectData(project, body));
+	return buildExportHTML({ body, project, locale, font, projectData: await renderProjectData(project, body) });
 }
 
-function buildExportHTML(body, project, projectData) {
-	const { tn } = makeTranslator(EXPORT_LOCALE);
+function buildExportHTML({ body, project, locale, font, projectData }) {
+	const { tn } = makeTranslator(locale);
 	const title = tn("export.title", project.meta.showName || "Light Note");
 	return `<!doctype html>
-<html lang="${EXPORT_LOCALE}">
+<html lang="${locale}" data-font="${font}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

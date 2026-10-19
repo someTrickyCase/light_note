@@ -16,10 +16,10 @@ npm run test:coverage  # same + coverage; thresholds 95% (vitest.config.js)
 
 ## Hard rules
 
-- **Offline / `file://`:** no CDN, no web fonts, no runtime fetches. Keep the IIFE output and CSS inlining in `vite.config.js` (ES modules break on `file://`).
+- **Offline / `file://`:** no CDN, no runtime fetches; fonts only as bundled files in `src/fonts/` (inlined by the build). Keep the IIFE output and CSS inlining in `vite.config.js` (ES modules break on `file://`).
 - **State:** change `project` only through `dispatch` → `src/state/reducer.js`.
-- **Styles:** raw colors, fonts, and spacing only in `src/styles/tokens.css`; everywhere else use `var(--token)`, including inline `style={{}}`. Pick tokens by **role** (`--c-strong`, `--c-on-accent`, …), so every theme works (`:root[data-theme="…"]` blocks in `tokens.css`, inside `@media screen`). A new color = a light value in `:root` **and** a value in the dark base block (plus any theme that overrides that role). Export and print must stay light and sans; `tests/appearance.test.jsx` checks contrast in every theme.
-- **Strings:** all UI and document text through `t()` / `tn()` from `src/i18n/dict.js`. No hardcoded text in JSX.
+- **Styles:** raw colors, fonts, and spacing only in `src/styles/tokens.css`; everywhere else use `var(--token)`, including inline `style={{}}`. Pick tokens by **role** (`--c-strong`, `--c-on-accent`, …), so every theme works (`:root[data-theme="…"]` blocks in `tokens.css`, inside `@media screen`). A new color = a light value in `:root` **and** a value in the dark base block (plus any theme that overrides that role). Export and print must stay light (they follow the chosen font, though); `tests/appearance.test.jsx` checks contrast in every theme.
+- **Strings:** all UI and document text through `t()` / `tn()`; phrases in `src/i18n/locales/<lang>.js` (ru = default, en). Every key in every language. No hardcoded text in JSX.
 - **`src/doc/*` stays pure:** it renders in the preview, in the export (`renderToStaticMarkup`), and in print. No dispatch or side effects there.
 - **Carousel markup** (`components/Lightbox.jsx`, `doc/ZoomImage.jsx`, `data-zoom-group`) is mirrored by vanilla JS in `src/utils/exportScript.js`. Change both together; `tests/export.test.jsx` drives the export copy.
 - **Exported HTML is also a project file** (`utils/projectFile.js`): keep `data-ln-ref` on document images (keys from `utils/imageKey.js`). Changing the project shape → bump `SCHEMA_VERSION` + migration, so old exports keep opening; `tests/projectFile.test.jsx` checks the round trip.
