@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useT } from "../i18n/I18nProvider.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
 import { ZoomImage } from "./ZoomImage.jsx";
+import { imageKey } from "../utils/imageKey.js";
 
 export function DocPlots({ project }) {
   const { t } = useT();
@@ -17,7 +18,10 @@ export function DocPlots({ project }) {
       <h2 className="doc__h2">{t("doc.section.plots")}</h2>
       {items.map((item, itemIndex) => (
         <figure key={item.which} className="doc__plot">
-          <ZoomImage src={item.src} alt={item.title} title={item.title} caption="" onOpen={() => setIndex(itemIndex)} />
+          <ZoomImage
+            src={item.src} alt={item.title} title={item.title} caption=""
+            imageRef={imageKey.plot(item.which)} onOpen={() => setIndex(itemIndex)}
+          />
           <div className="doc__plot-cap">{item.title}</div>
         </figure>
       ))}

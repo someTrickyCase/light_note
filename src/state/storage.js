@@ -15,6 +15,7 @@
 import { uid, emptyProject, STORAGE_KEY, SCHEMA_VERSION } from "./model.js";
 import * as idb from "./idb.js";
 import { measureImage } from "../utils/files.js";
+import { imageKey } from "../utils/imageKey.js";
 
 const BLOB_PREFIX = "__blob:";
 const LEGACY_PREFIX = "__idbRef:";
@@ -43,13 +44,14 @@ function blobToDataURL(blob) {
 const hasPrefix = (value, prefix) => typeof value === "string" && value.startsWith(prefix);
 
 // Применяет transform ко всем бинарным полям проекта: photos[].src, plots.base/show, meta.logo.
-// transform(value, key, missing) → newValue | Promise<newValue>; key — стабильный ключ в IDB,
-// missing — что подставить, если картинка потеряна. Поля обрабатываются параллельно.
-async function mapBinaries(project, transform) {
+// transform(value, key, missing) → newValue | Promise<newValue>; key — стабильный ключ
+// картинки (model.js#imageKey), missing — что подставить, если картинка потеряна.
+// Поля обрабатываются параллельно. Его же использует экспорт/импорт HTML (utils/projectFile.js).
+export async function mapBinaries(project, transform) {
 	const photos = Array.isArray(project.photos)
 		? await Promise.all(project.photos.map(async (photo) => {
 			if (!photo?.src) { return photo; }
-			const source = await transform(photo.src, `photo:${photo.id}`, "");
+			const source = await transform(photo.src, imageKey.photo(photo.id), "");
 			return source === photo.src ? photo : { ...photo, src: source };
 		}))
 		: project.photos;
@@ -59,13 +61,13 @@ async function mapBinaries(project, transform) {
 			...project.plots,
 			...Object.fromEntries(await Promise.all(["base", "show"].map(async (which) => {
 				const value = project.plots[which];
-				return [which, value ? await transform(value, `plot:${which}`, null) : value];
+				return [which, value ? await transform(value, imageKey.plot(which), null) : value];
 			}))),
 		}
 		: project.plots;
 
 	const meta = project.meta?.logo
-		? { ...project.meta, logo: await transform(project.meta.logo, "logo", null) }
+		? { ...project.meta, logo: await transform(project.meta.logo, imageKey.logo, null) }
 		: project.meta;
 
 	return { ...project, photos, plots, meta };
@@ -113,7 +115,7 @@ const normalizePhoto = (photo) => ({ ...photo, id: photo.id || uid() });
 const normalizeList = (list, normalize) =>
 	(Array.isArray(list) ? list.filter(Boolean).map((item) => normalize(item)) : []);
 
-function migrateProject(parsed) {
+export function migrateProject(parsed) {
 	return {
 		...emptyProject(),
 		...parsed,
@@ -128,7 +130,7 @@ function migrateProject(parsed) {
 // Фото до v0.4 не знают свой размер, а мозаике галереи нужно соотношение сторон.
 // Меряем один раз при загрузке (размер сохранится со следующим сохранением).
 // Не получилось (битая картинка) — без размера, галерея возьмёт запасное соотношение.
-async function addPhotoSizes(project) {
+export async function addPhotoSizes(project) {
 	const photos = await Promise.all(project.photos.map(async (photo) => {
 		if (!photo.src || (photo.width > 0 && photo.height > 0)) { return photo; }
 		try {
