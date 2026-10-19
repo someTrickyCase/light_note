@@ -25,8 +25,8 @@
   .topbar__sep,
   .topbar__meta { display: none; }
   .topbar__spacer { display: none; }
-  .topbar__actions { width: 100%; flex-direction: column; gap: 6px; }
-  .topbar__actions .btn { width: 100%; }
+  .topbar__actions { width: 100%; }
+  .topbar__actions .menu, .topbar__actions .btn { width: 100%; }
 }
 
 /* ---- work (editor + preview) ---- */

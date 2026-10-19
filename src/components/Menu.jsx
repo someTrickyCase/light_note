@@ -1,8 +1,12 @@
 // =====================================================================
 // COMPONENT · ВЫПАДАЮЩЕЕ МЕНЮ (кнопка + список действий)
 // =====================================================================
-// items: [{ label, onSelect } | { separator: true, id }] (id — ключ разделителя).
-// Стрелка ▾ у кнопки — в CSS (.menu__button::after).
+// items — строки списка:
+//   { label, onSelect }                   — действие: выполняет и закрывает меню
+//   { label, onSelect, checked: boolean } — выбор из группы (тема, шрифт): role=menuitemradio,
+//                                           меню остаётся открытым — можно сравнить варианты
+//   { heading, id }                       — подпись группы (не фокусируется)
+//   { separator: true, id }               — разделитель
 // Клавиатура как в обычных меню: Enter/Space/↓ открывают и ставят фокус на
 // первый пункт, ↑ ↓ Home End — по пунктам, Esc закрывает и возвращает фокус
 // на кнопку, Tab или клик мимо — просто закрывают.
@@ -10,7 +14,28 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cn } from "./cn.js";
 
-const ITEM = "[role=menuitem]";
+const ITEM = "[role=menuitem], [role=menuitemradio]";
+
+function MenuRow({ item, onClose }) {
+	if (item.separator) { return <div className="menu__sep" role="separator" />; }
+	if (item.heading) { return <div className="menu__heading" role="presentation">{item.heading}</div>; }
+	const isChoice = item.checked !== undefined;
+	return (
+		<button
+			type="button"
+			role={isChoice ? "menuitemradio" : "menuitem"}
+			aria-checked={isChoice ? item.checked : undefined}
+			className={cn("menu__item", item.checked && "is-checked")}
+			tabIndex={-1}
+			onClick={() => {
+				if (!isChoice) { onClose(); }
+				item.onSelect();
+			}}
+		>
+			{item.label}
+		</button>
+	);
+}
 
 export function Menu({ label, items, className }) {
 	const [open, setOpen] = useState(false);
@@ -77,23 +102,7 @@ export function Menu({ label, items, className }) {
 			</button>
 			{open ? (
 				<div id={listId} ref={listRef} className="menu__list" role="menu" tabIndex={-1} onKeyDown={onListKeyDown}>
-					{items.map((item) => (item.separator
-						? <div key={item.id} className="menu__sep" role="separator" />
-						: (
-							<button
-								key={item.label}
-								type="button"
-								role="menuitem"
-								className="menu__item"
-								tabIndex={-1}
-								onClick={() => {
-									setOpen(false);
-									item.onSelect();
-								}}
-							>
-								{item.label}
-							</button>
-						)))}
+					{items.map((item) => <MenuRow key={item.id ?? item.label} item={item} onClose={() => setOpen(false)} />)}
 				</div>
 			) : null}
 		</div>

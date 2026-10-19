@@ -1,5 +1,6 @@
 // =====================================================================
-// ВЕРХНЯЯ ПАНЕЛЬ: меню «Файл» (новый / открыть HTML / скачать / печать)
+// ВЕРХНЯЯ ПАНЕЛЬ: одно меню справа — импорт (новый / открыть HTML),
+// экспорт (скачать HTML / печать), тема и шрифт. Без значков в списке.
 // =====================================================================
 // Открыть проект можно из меню или бросив .html на окно. Порядок важен:
 // сначала файл читается и проверяется (utils/projectFile.js), и только потом
@@ -13,8 +14,8 @@ import { emptyProject, isEmptyProject } from "./state/model.js";
 import { pushToast } from "./utils/toast.js";
 import { exportDocument } from "./utils/exportHtml.jsx";
 import { ProjectFileError, readProjectFromHTML } from "./utils/projectFile.js";
-import { useHtmlDrop } from "./utils/useHtmlDrop.js";
-import { Button } from "./components/Button.jsx";
+import { isHtmlFile, useHtmlDrop } from "./utils/useHtmlDrop.js";
+import { FONTS, THEMES, useAppearance } from "./utils/appearance.js";
 import { ChoiceDialog } from "./components/ChoiceDialog.jsx";
 import { Menu } from "./components/Menu.jsx";
 
@@ -40,6 +41,11 @@ function useProjectReplace() {
 		if (isEmptyProject(current)) { apply(next); } else { setPending(next); }
 	};
 	const openFile = async (file) => {
+		// в диалоге выбора можно переключить фильтр на «все файлы» — фото сюда не по адресу
+		if (!isHtmlFile(file)) {
+			pushToast({ tone: "err", msg: tn("open.error.notHtml") });
+			return;
+		}
 		try {
 			const project = await readProjectFromHTML(await file.text());
 			request({ project, fileName: file.name });
@@ -58,6 +64,7 @@ export function Topbar() {
 	const { t, tn } = useT();
 	const inputRef = useRef(null);
 	const { current, pending, request, openFile, apply, saveThenApply, cancel } = useProjectReplace();
+	const { theme, font, setTheme, setFont } = useAppearance();
 
 	useHtmlDrop((file) => {
 		if (file) { openFile(file); } else { pushToast({ tone: "err", msg: t("open.error.notHtml") }); }
@@ -65,11 +72,19 @@ export function Topbar() {
 
 	const currentName = current.meta.showName || t("replace.unnamed");
 	const menuItems = [
+		{ heading: t("menu.import"), id: "h-import" },
 		{ label: t("menu.new"), onSelect: () => request({ project: emptyProject(), fileName: null }) },
 		{ label: t("menu.open"), onSelect: () => inputRef.current.click() },
-		{ separator: true, id: "sep-output" },
+		{ separator: true, id: "sep-export" },
+		{ heading: t("menu.exportGroup"), id: "h-export" },
 		{ label: t("menu.export"), onSelect: () => exportDocument(current) },
 		{ label: t("menu.print"), onSelect: () => globalThis.print() },
+		{ separator: true, id: "sep-theme" },
+		{ heading: t("menu.theme"), id: "h-theme" },
+		...THEMES.map((id) => ({ label: t(`appearance.theme.${id}`), checked: theme === id, onSelect: () => setTheme(id) })),
+		{ separator: true, id: "sep-font" },
+		{ heading: t("menu.font"), id: "h-font" },
+		...FONTS.map((id) => ({ label: t(`appearance.font.${id}`), checked: font === id, onSelect: () => setFont(id) })),
 	];
 
 	return (
@@ -86,10 +101,7 @@ export function Topbar() {
 			</span>
 			<div className="topbar__spacer" />
 			<div className="topbar__actions">
-				<Menu label={t("menu.file")} items={menuItems} />
-				<Button variant="primary" size="sm" onClick={() => exportDocument(current)}>
-					↓ {t("app.actions.export")}
-				</Button>
+				<Menu label={t("menu.main")} items={menuItems} />
 			</div>
 			<input
 				ref={inputRef}
