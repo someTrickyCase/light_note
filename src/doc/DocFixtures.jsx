@@ -3,7 +3,7 @@ import { useT } from "../i18n/I18nProvider.jsx";
 export function DocFixtures({ project }) {
 	const { t, tn } = useT();
 	const list = project.fixtures.filter((f) => f.type);
-	if (list.length === 0) return null;
+	if (list.length === 0) { return null; }
 	const total = list.reduce((s, f) => s + (Number(f.qty) || 0), 0);
 	return (
 		<section className="doc__section">

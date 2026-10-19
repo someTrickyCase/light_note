@@ -15,19 +15,18 @@ function fixturePreview(f) {
 function FixtureRow({ fixture, expanded, onToggle, onPatch, onDelete, onMoveUp, onMoveDown, canUp, canDown }) {
 	const { t } = useT();
 	return (
-		<div className={"fixture-row" + (expanded ? " is-expanded" : "")}>
+		<div className={`fixture-row${expanded ? " is-expanded" : ""}`}>
 			<button type="button" className="fixture-row__head" onClick={onToggle} aria-expanded={expanded}>
 				<span className="fixture-row__qty">×{fixture.qty}</span>
 				<span className="fixture-row__preview">{fixturePreview(fixture)}</span>
 				<span className="fixture-row__chev" aria-hidden="true">{expanded ? "▾" : "▸"}</span>
 			</button>
-			{expanded && (
-				<div className="fixture-row__body">
+			{expanded ? <div className="fixture-row__body">
 					<div className="fixture-row__grid">
 						<Field label={t("fixtures.col.type")} wide>
 							<Input
 								value={fixture.type}
-								onChange={(e) => onPatch({ type: e.target.value })}
+								onChange={(event) => onPatch({ type: event.target.value })}
 								placeholder={t("fixtures.type.ph")}
 							/>
 						</Field>
@@ -35,7 +34,7 @@ function FixtureRow({ fixture, expanded, onToggle, onPatch, onDelete, onMoveUp, 
 							<Input
 								type="number" min="0"
 								value={fixture.qty}
-								onChange={(e) => onPatch({ qty: e.target.value })}
+								onChange={(event) => onPatch({ qty: event.target.value })}
 								placeholder={t("fixtures.qty.ph")}
 							/>
 						</Field>
@@ -43,7 +42,7 @@ function FixtureRow({ fixture, expanded, onToggle, onPatch, onDelete, onMoveUp, 
 					<Field label={t("fixtures.col.info")}>
 						<GrowTextarea
 							value={fixture.info}
-							onChange={(e) => onPatch({ info: e.target.value })}
+							onChange={(event) => onPatch({ info: event.target.value })}
 							placeholder={t("fixtures.info.ph")}
 						/>
 					</Field>
@@ -52,15 +51,14 @@ function FixtureRow({ fixture, expanded, onToggle, onPatch, onDelete, onMoveUp, 
 						<IconButton label={t("common.moveDown")} onClick={onMoveDown} disabled={!canDown}>↓</IconButton>
 						<IconButton label={t("common.delete")} onClick={onDelete}>✕</IconButton>
 					</div>
-				</div>
-			)}
+				</div> : null}
 		</div>
 	);
 }
 
 function Field({ label, children, wide }) {
 	return (
-		<label className={"fixture-row__field" + (wide ? " fixture-row__field--wide" : "")}>
+		<label className={`fixture-row__field${wide ? " fixture-row__field--wide" : ""}`}>
 			<span className="fixture-row__label">{label}</span>
 			{children}
 		</label>
@@ -75,12 +73,11 @@ export function FixturesSection() {
 
 	const total = p.fixtures.reduce((s, f) => s + (Number(f.qty) || 0), 0);
 
-	const move = (id, dir) => {
-		const idx = p.fixtures.findIndex((f) => f.id === id);
-		if (idx < 0) return;
-		const j = idx + dir;
-		if (j < 0 || j >= p.fixtures.length) return;
-		d({ type: "FIX_REORDER", fromId: id, toId: p.fixtures[j].id });
+	const move = (id, direction) => {
+		const index = p.fixtures.findIndex((f) => f.id === id);
+		const target = p.fixtures[index + direction];
+		if (index === -1 || !target) { return; }
+		d({ type: "FIX_REORDER", fromId: id, toId: target.id });
 	};
 
 	return (
@@ -88,9 +85,7 @@ export function FixturesSection() {
 			<GroupTitle num="5">
 				{t("editor.fixtures")}
 				{p.fixtures.length > 0 && (
-					<span style={{ marginLeft: 8, color: "var(--c-soft)", fontFamily: "var(--ff-mono)", fontSize: 11 }}>
-						{tn("fixtures.total", total)}
-					</span>
+					<span className="editor__title-meta">{tn("fixtures.total", total)}</span>
 				)}
 			</GroupTitle>
 			<div className="editor__stack">
@@ -98,7 +93,7 @@ export function FixturesSection() {
 					<EmptyState glyph="▣" title={t("fixtures.empty")} />
 				) : (
 					<div className="fixture-list" role="list">
-						{p.fixtures.map((f, idx) => (
+						{p.fixtures.map((f, index) => (
 							<FixtureRow
 								key={f.id}
 								fixture={f}
@@ -108,8 +103,8 @@ export function FixturesSection() {
 								onDelete={() => d({ type: "FIX_DELETE", id: f.id })}
 								onMoveUp={() => move(f.id, -1)}
 								onMoveDown={() => move(f.id, 1)}
-								canUp={idx > 0}
-								canDown={idx < p.fixtures.length - 1}
+								canUp={index > 0}
+								canDown={index < p.fixtures.length - 1}
 							/>
 						))}
 					</div>

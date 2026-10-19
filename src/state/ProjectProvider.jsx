@@ -5,10 +5,14 @@
 import { createContext, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { projectReducer } from "./reducer.js";
 import { storage } from "./storage.js";
+import { emptyProject } from "./model.js";
 
 const ProjectContext = createContext(null);
 const DispatchContext = createContext(null);
 const LoadingContext = createContext(false);
+
+// пустой проект, созданный один раз, чтобы ссылка была стабильной между рендерами
+const emptyProjectPlaceholder = emptyProject();
 
 export function ProjectProvider({ children }) {
 	const [project, dispatch] = useReducer(projectReducer, null, () => null);
@@ -18,7 +22,7 @@ export function ProjectProvider({ children }) {
 	useEffect(() => {
 		let alive = true;
 		storage.load().then((p) => {
-			if (!alive) return;
+			if (!alive) { return; }
 			dispatch({ type: "REPLACE", project: p });
 			setReady(true);
 		});
@@ -29,7 +33,7 @@ export function ProjectProvider({ children }) {
 	// чтобы не зациклиться (REPLACE → save → load → ...).
 	const firstSaveRef = useRef(true);
 	useEffect(() => {
-		if (!ready) return;
+		if (!ready) { return; }
 		if (firstSaveRef.current) { firstSaveRef.current = false; return; }
 		storage.save(project);
 	}, [project, ready]);
@@ -53,8 +57,5 @@ export const useProject = () => {
 	return p || emptyProjectPlaceholder;
 };
 
-// мемоизированный пустой проект, чтобы ссылка была стабильной между рендерами
-import { emptyProject } from "./model.js";
-const emptyProjectPlaceholder = emptyProject();
 export const useDispatch = () => useContext(DispatchContext);
 export const useProjectLoading = () => useContext(LoadingContext);

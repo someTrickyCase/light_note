@@ -63,9 +63,18 @@
 
 /* plots: без рамки, подпись снизу как простой текст */
 .doc__plot { margin-bottom: var(--s-6); }
-.doc__plot a { display: block; cursor: zoom-in; }
 .doc__plot img { width: 100%; height: auto; display: block; }
 .doc__plot-cap { margin-top: 8px; font-family: var(--ff-mono); font-size: var(--fs-xs); color: var(--c-soft); text-transform: uppercase; letter-spacing: .05em; }
+
+/* кнопка-обёртка картинки: клик/Enter открывает lightbox (и в превью, и в экспорте) */
+.doc__zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.doc__zoom:focus-visible { outline: 2px solid var(--c-steel); outline-offset: 2px; }
+
+/* cue list: ширины колонок */
+.doc__col-num { width: 50px; }
+.doc__col-name { width: 140px; }
+.doc__col-cmd { width: 200px; }
+.doc__col-trigger { width: 90px; }
 
 /* gallery: карусель с кнопками влево/вправо, фото в полный размер */
 .doc__gallery-wrap { position: relative; }
@@ -73,7 +82,6 @@
 .doc__gallery::-webkit-scrollbar { height: 6px; }
 .doc__gallery::-webkit-scrollbar-thumb { background: var(--c-line); border-radius: 3px; }
 .doc__photo { flex: 0 0 100%; scroll-snap-align: start; }
-.doc__photo a { display: block; cursor: zoom-in; }
 .doc__photo img { width: 100%; height: auto; display: block; border-radius: var(--r-md); }
 .doc__photo-meta { padding: 10px 4px 0; font-size: var(--fs-sm); color: var(--c-ink-2); }
 .doc__photo-tag { font-family: var(--ff-mono); color: var(--c-accent); font-weight: 600; margin-bottom: 2px; }

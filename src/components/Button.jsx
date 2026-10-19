@@ -14,7 +14,7 @@ export function Button({ variant = "primary", size, block, icon, className, chil
       )}
       {...rest}
     >
-      {icon && <span aria-hidden="true">{icon}</span>}
+      {icon ? <span aria-hidden="true">{icon}</span> : null}
       {children}
     </button>
   );

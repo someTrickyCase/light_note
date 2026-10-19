@@ -3,7 +3,7 @@ import { useT } from "../i18n/I18nProvider.jsx";
 export function DocStaff({ project }) {
 	const { t } = useT();
 	const list = project.times.staff.filter((s) => s.role);
-	if (list.length === 0) return null;
+	if (list.length === 0) { return null; }
 	const total = list.reduce((s, x) => s + (Number(x.qty) || 0), 0);
 	return (
 		<section className="doc__section">

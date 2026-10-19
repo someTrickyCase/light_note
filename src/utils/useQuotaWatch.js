@@ -1,38 +1,55 @@
 // =====================================================================
 // HOOK · СЛЕЖЕНИЕ ЗА УРОВНЕМ ЗАНЯТОГО МЕСТА
 // =====================================================================
-// Возвращает { level, usedBytes } и при переходе через пороги
+// Возвращает { level, usedBytes, quotaBytes } и при переходе через пороги
 // (ok → warn → err) показывает toast один раз.
 // Используется в Preview, чтобы индикатор реагировал на сохранения.
 
 import { useEffect, useRef, useState } from "react";
-import { projectSize, quotaLevel, QUOTA_LEVELS } from "./storageQuota.js";
+import { storage } from "../state/storage.js";
+import { quotaLevel, QUOTA_LEVELS } from "./storageQuota.js";
 import { pushToast } from "./toast.js";
 
+// Пауза после изменения проекта: даём сохранению дойти до IDB и не
+// дёргаем estimate() на каждую букву.
+const ESTIMATE_DELAY_MS = 800;
+
 export function useQuotaWatch(project, t) {
-	const usedBytes = projectSize(project);
-	const level = quotaLevel(usedBytes);
+	const [usage, setUsage] = useState({ usedBytes: 0, quotaBytes: 0 });
+
+	useEffect(() => {
+		let alive = true;
+		const timer = setTimeout(() => {
+			storage.estimate().then((next) => { if (alive) { setUsage(next); } });
+		}, ESTIMATE_DELAY_MS);
+		return () => {
+			alive = false;
+			clearTimeout(timer);
+		};
+	}, [project]);
+
+	const level = quotaLevel(usage.usedBytes, usage.quotaBytes);
 
 	// Храним предыдущий уровень между рендерами
-	const prevRef = useRef(level);
+	const previousRef = useRef(level);
 	const firstRenderRef = useRef(true);
 
 	useEffect(() => {
-		const prev = prevRef.current;
+		const previous = previousRef.current;
 		// На первом рендере не тостим — пользователь ещё ничего не делал
 		if (firstRenderRef.current) {
 			firstRenderRef.current = false;
-			prevRef.current = level;
+			previousRef.current = level;
 			return;
 		}
 		// Тостим только при ужесточении (ok→warn, warn→err, ok→err).
 		// Возврат (err→warn) намеренно не тостим — не шумим.
-		if (QUOTA_LEVELS[level].order > QUOTA_LEVELS[prev].order) {
+		if (QUOTA_LEVELS[level].order > QUOTA_LEVELS[previous].order) {
 			const key = level === "err" ? "quota.toast.err" : "quota.toast.warn";
 			pushToast({ tone: level, msg: t(key), ttl: 8000 });
 		}
-		prevRef.current = level;
+		previousRef.current = level;
 	}, [level, t]);
 
-	return { level, usedBytes };
+	return { level, ...usage };
 }

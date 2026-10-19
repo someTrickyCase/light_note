@@ -17,59 +17,52 @@ export function MetaSection() {
       <GroupTitle num="1">{t("editor.meta")}</GroupTitle>
       <div className="editor__stack">
         <Field label={t("meta.showName")}>
-          <Input value={p.meta.showName} onChange={(e) => set({ showName: e.target.value })} placeholder={t("meta.showName.ph")} />
+          <Input value={p.meta.showName} onChange={(event) => set({ showName: event.target.value })} placeholder={t("meta.showName.ph")} />
         </Field>
         <Field label={t("meta.venue")}>
-          <Input value={p.meta.venue} onChange={(e) => set({ venue: e.target.value })} placeholder={t("meta.venue.ph")} />
+          <Input value={p.meta.venue} onChange={(event) => set({ venue: event.target.value })} placeholder={t("meta.venue.ph")} />
         </Field>
         <div className="editor__row">
           <Field label={t("meta.date")}>
-            <Input type="date" value={p.meta.date} onChange={(e) => set({ date: e.target.value })} />
+            <Input type="date" value={p.meta.date} onChange={(event) => set({ date: event.target.value })} />
           </Field>
           <Field label={t("meta.ld")}>
-            <Input value={p.meta.ld} onChange={(e) => set({ ld: e.target.value })} placeholder={t("meta.ld.ph")} />
+            <Input value={p.meta.ld} onChange={(event) => set({ ld: event.target.value })} placeholder={t("meta.ld.ph")} />
           </Field>
         </div>
         <div className="editor__row">
           <Field label={t("meta.director")}>
-            <Input value={p.meta.director} onChange={(e) => set({ director: e.target.value })} placeholder={t("meta.director.ph")} />
+            <Input value={p.meta.director} onChange={(event) => set({ director: event.target.value })} placeholder={t("meta.director.ph")} />
           </Field>
           <Field label={t("meta.console")}>
-            <Input value={p.meta.console} onChange={(e) => set({ console: e.target.value })} placeholder={t("meta.console.ph")} />
+            <Input value={p.meta.console} onChange={(event) => set({ console: event.target.value })} placeholder={t("meta.console.ph")} />
           </Field>
         </div>
         <Field label={t("meta.logo")} hint={t("meta.logo.help")}>
           {p.meta.logo ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <img
-                src={p.meta.logo} alt=""
-                style={{
-                  maxHeight: 40, maxWidth: 180, objectFit: "contain",
-                  background: "#fff", padding: 4,
-                  border: "1px solid var(--c-line)", borderRadius: 6,
-                }}
-              />
+            <div className="logo-preview">
+              <img className="logo-preview__img" src={p.meta.logo} alt="" />
               <label className="btn btn--ghost btn--sm">
-                Заменить
+                {t("common.replace")}
                 <input
-                  type="file" accept="image/*" style={{ display: "none" }}
-                  onChange={async (e) => {
-                    const f = e.target.files[0];
-                    if (!f) return;
-                    set({ logo: await readAsDataURL(f) });
+                  type="file" accept="image/*" hidden
+                  onChange={async (event) => {
+                    const file = event.target.files[0];
+                    if (!file) { return; }
+                    set({ logo: await readAsDataURL(file) });
                   }}
                 />
               </label>
               <Button size="sm" variant="danger" onClick={() => set({ logo: null })}>
-                Удалить
+                {t("common.delete")}
               </Button>
             </div>
           ) : (
             <FileDrop
-              onFiles={(items) => { if (items[0]) set({ logo: items[0].src }); }}
+              onFiles={(items) => { if (items[0]) { set({ logo: items[0].src }); } }}
               multiple={false} hint={t("meta.logo.help")}
             >
-              Загрузить логотип
+              {t("meta.logo.upload")}
             </FileDrop>
           )}
         </Field>

@@ -4,10 +4,10 @@
 
 export function readAsDataURL(file) {
   return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(r.error);
-    r.readAsDataURL(file);
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
   });
 }
 
@@ -20,7 +20,7 @@ export const JPEG_QUALITY = 0.82;
 export function compressImage(dataURL, maxDim = MAX_DIM, quality = JPEG_QUALITY) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => {
+    img.addEventListener('load', () => {
       let { width, height } = img;
       if (Math.max(width, height) > maxDim) {
         const k = maxDim / Math.max(width, height);
@@ -37,19 +37,20 @@ export function compressImage(dataURL, maxDim = MAX_DIM, quality = JPEG_QUALITY)
       ctx.drawImage(img, 0, 0, width, height);
       try {
         resolve(canvas.toDataURL("image/jpeg", quality));
-      } catch (e) {
-        console.warn("compress: toDataURL failed, using original", e);
+      } catch (error) {
+        console.warn("compress: toDataURL failed, using original", error);
         resolve(dataURL);
       }
-    };
-    img.onerror = (e) => reject(e);
+    });
+    // браузер отдаёт Event без текста — превращаем в Error, чтобы тост показал причину
+    img.addEventListener("error", () => reject(new Error("image decode failed")));
     img.src = dataURL;
   });
 }
 
 // HTML-escape (общий)
 export function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({
+  return String(s).replaceAll(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   }[c]));
 }

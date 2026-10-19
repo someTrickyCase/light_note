@@ -1,19 +1,15 @@
 import { cn } from "./cn.js";
 
+// Интерактивный чип — настоящий <button> (фокус, Enter/Space из коробки),
+// статичный — <span>.
 export function Chip({ active, disabled, onClick, children, className, ...rest }) {
-  const interactive = Boolean(onClick);
+  const classes = cn("chip", active && "is-on", disabled && "is-disabled", className);
+  if (!onClick) {
+    return <span className={classes} {...rest}>{children}</span>;
+  }
   return (
-    <span
-      role={interactive ? "button" : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      onClick={onClick}
-      onKeyDown={interactive ? (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(e); }
-      } : undefined}
-      className={cn("chip", active && "is-on", disabled && "is-disabled", className)}
-      {...rest}
-    >
+    <button type="button" className={classes} onClick={onClick} disabled={disabled} aria-pressed={Boolean(active)} {...rest}>
       {children}
-    </span>
+    </button>
   );
 }

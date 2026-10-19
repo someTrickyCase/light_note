@@ -1,88 +1,85 @@
 import { useT } from "../i18n/I18nProvider.jsx";
 import { useDispatch, useProject } from "../state/ProjectProvider.jsx";
 import { Badge } from "../components/Badge.jsx";
-import { Button, IconButton } from "../components/Button.jsx";
+import { IconButton } from "../components/Button.jsx";
+import { ConfirmButton } from "../components/ConfirmButton.jsx";
 import { EmptyState } from "../components/EmptyState.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
 import { Input } from "../components/Field.jsx";
 import { GroupTitle } from "./GroupTitle.jsx";
+
+function PhotoCard({ photo, previous, next }) {
+  const { t } = useT();
+  const d = useDispatch();
+  const patch = (fields) => d({ type: "PHOTO_UPDATE", id: photo.id, patch: fields });
+  const moveBefore = (other) => d({ type: "PHOTO_REORDER", fromId: photo.id, toId: other.id });
+  return (
+    <div className="photo-card">
+      <img className="photo-card__img" src={photo.src} alt="" />
+      <div className="photo-card__body">
+        <div className="photo-card__field">
+          <Input
+            value={photo.tag} placeholder={t("gallery.tag.ph")}
+            onChange={(event) => patch({ tag: event.target.value })}
+          />
+        </div>
+        <div className="photo-card__field">
+          <Input
+            value={photo.caption} placeholder={t("gallery.caption.ph")}
+            onChange={(event) => patch({ caption: event.target.value })}
+          />
+        </div>
+        <div className="photo-card__actions">
+          <IconButton label={t("common.moveUp")} onClick={() => { if (previous) { moveBefore(previous); } }}>↑</IconButton>
+          <IconButton label={t("common.moveDown")} onClick={() => { if (next) { moveBefore(next); } }}>↓</IconButton>
+          <IconButton label={t("common.delete")} onClick={() => d({ type: "PHOTO_DELETE", id: photo.id })}>✕</IconButton>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function GallerySection() {
   const { t, tn } = useT();
   const p = useProject();
   const d = useDispatch();
   const onFiles = (items) => d({ type: "PHOTOS_ADD", items });
+  const hasPhotos = p.photos.length > 0;
 
   return (
     <div className="editor__group">
       <GroupTitle num="4">
         {t("editor.gallery")}
-        {p.photos.length > 0 && (
-          <Badge tone="neutral" style={{ marginLeft: 8 }}>{tn("gallery.count", p.photos.length)}</Badge>
-        )}
+        {hasPhotos ? (
+          <Badge tone="neutral" className="editor__title-badge">{tn("gallery.count", p.photos.length)}</Badge>
+        ) : null}
       </GroupTitle>
       <div className="editor__stack">
         <FileDrop onFiles={onFiles} hint={t("gallery.drop.help")}>
           {t("gallery.drop")}
         </FileDrop>
-        {p.photos.length > 0 && (
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <Button
+        {hasPhotos ? (
+          <div className="editor__actions editor__actions--end">
+            <ConfirmButton
               variant="ghost"
               size="sm"
-              onClick={() => {
-                if (confirm(t("gallery.confirmClear"))) d({ type: "PHOTOS_CLEAR" });
-              }}
+              title={t("gallery.confirmClear")}
+              confirmLabel={t("gallery.clearAll.confirm")}
+              onConfirm={() => d({ type: "PHOTOS_CLEAR" })}
             >
               ✕ {t("gallery.clearAll")}
-            </Button>
+            </ConfirmButton>
           </div>
-        )}
-        {p.photos.length === 0 ? (
-          <EmptyState glyph="▤" title={t("gallery.empty")} />
         ) : (
+          <EmptyState glyph="▤" title={t("gallery.empty")} />
+        )}
+        {hasPhotos ? (
           <div className="photo-list">
-            {p.photos.map((ph, idx) => (
-              <div key={ph.id} className="photo-card">
-                <img className="photo-card__img" src={ph.src} alt="" />
-                <div className="photo-card__body">
-                  <div className="photo-card__field">
-                    <Input
-                      value={ph.tag} placeholder={t("gallery.tag.ph")}
-                      onChange={(e) => d({ type: "PHOTO_UPDATE", id: ph.id, patch: { tag: e.target.value } })}
-                    />
-                  </div>
-                  <div className="photo-card__field">
-                    <Input
-                      value={ph.caption} placeholder={t("gallery.caption.ph")}
-                      onChange={(e) => d({ type: "PHOTO_UPDATE", id: ph.id, patch: { caption: e.target.value } })}
-                    />
-                  </div>
-                  <div className="photo-card__actions">
-                    <IconButton
-                      label={t("common.moveUp")}
-                      onClick={() => {
-                        const prev = p.photos[idx - 1];
-                        if (prev) d({ type: "PHOTO_REORDER", fromId: ph.id, toId: prev.id });
-                      }}
-                    >↑</IconButton>
-                    <IconButton
-                      label={t("common.moveDown")}
-                      onClick={() => {
-                        const next = p.photos[idx + 1];
-                        if (next) d({ type: "PHOTO_REORDER", fromId: ph.id, toId: next.id });
-                      }}
-                    >↓</IconButton>
-                    <IconButton
-                      label={t("common.delete")}
-                      onClick={() => d({ type: "PHOTO_DELETE", id: ph.id })}
-                    >✕</IconButton>
-                  </div>
-                </div>
-              </div>
+            {p.photos.map((photo, index) => (
+              <PhotoCard key={photo.id} photo={photo} previous={p.photos[index - 1]} next={p.photos[index + 1]} />
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
