@@ -28,7 +28,6 @@ export const DICT = {
 			`Не удалось прочитать проект из браузера (${message}). Изменения НЕ сохраняются — сделайте экспорт HTML.`,
 
 		"export.title": (name) => `${name} · техническая документация`,
-		"export.unavailable": "renderToStaticMarkup недоступен — нельзя экспортировать.",
 
 		"editor.heading": "Параметры шоу",
 		"editor.meta": "Общие сведения",
@@ -95,8 +94,10 @@ export const DICT = {
 		"gallery.clearAll": "Удалить все",
 		"gallery.confirmClear": "Удалить все фотографии? Это действие нельзя отменить.",
 		"gallery.clearAll.confirm": "Точно удалить все?",
-		"gallery.prev": "Предыдущее фото",
-		"gallery.next": "Следующее фото",
+		"lightbox.prev": "Предыдущее",
+		"lightbox.next": "Следующее",
+		// формат счётчика повторён в utils/exportScript.js — менять вместе
+		"lightbox.count": (current, total) => `${current} / ${total}`,
 
 		"fixtures.add": "Добавить прибор",
 		"fixtures.type.ph": "Название / модель (Source Four 26°, Mac Quantum, …)",

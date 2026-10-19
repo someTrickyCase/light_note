@@ -76,29 +76,32 @@
 .doc__col-cmd { width: 200px; }
 .doc__col-trigger { width: 90px; }
 
-/* gallery: карусель с кнопками влево/вправо, фото в полный размер */
-.doc__gallery-wrap { position: relative; }
-.doc__gallery { display: flex; gap: var(--s-3); overflow-x: auto; padding: var(--s-2) 0 var(--s-3); scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-.doc__gallery::-webkit-scrollbar { height: 6px; }
-.doc__gallery::-webkit-scrollbar-thumb { background: var(--c-line); border-radius: 3px; }
-.doc__photo { flex: 0 0 100%; scroll-snap-align: start; }
-.doc__photo img { width: 100%; height: auto; display: block; border-radius: var(--r-md); }
-.doc__photo-meta { padding: 10px 4px 0; font-size: var(--fs-sm); color: var(--c-ink-2); }
-.doc__photo-tag { font-family: var(--ff-mono); color: var(--c-accent); font-weight: 600; margin-bottom: 2px; }
-.doc__gallery-btn {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  width: 40px; height: 40px; border-radius: var(--r-pill);
-  background: var(--c-surface); border: 1px solid var(--c-line);
-  box-shadow: var(--sh-2);
-  display: grid; place-items: center;
-  cursor: pointer; z-index: 2;
-  font-size: 20px; line-height: 1; color: var(--c-ink-2);
-  transition: background var(--t-fast) ease, border-color var(--t-fast) ease;
+/* gallery: мозаика «justified rows» (см. doc/DocGallery.jsx).
+   Каждая плитка: flex-grow = соотношение сторон (--ar), flex-basis = --ar × высота строки.
+   Свободное место в строке делится пропорционально --ar → у всех плиток строки
+   одна высота, фото не обрезаются. ::after с огромным grow забирает место
+   в последней строке, чтобы её не растягивало.
+   max-width тоже пропорционален --ar: все плитки строки упираются в него
+   одновременно (высоты остаются равными), а одинокое фото в строке (телефон,
+   панорама рядом) не раздувается больше чем в --gallery-row-max раз. */
+.doc__mosaic { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.doc__mosaic::after { content: ""; flex-grow: 1000000000; }
+.doc__tile {
+  margin: 0; min-width: 0;
+  flex: var(--ar) 1 calc(var(--ar) * var(--gallery-row-h));
+  max-width: calc(var(--ar) * var(--gallery-row-h) * var(--gallery-row-max));
 }
-.doc__gallery-btn:hover { background: var(--c-page); border-color: var(--c-ink-2); }
-.doc__gallery-btn--prev { left: -8px; }
-.doc__gallery-btn--next { right: -8px; }
-@media (max-width: 700px) { .doc__gallery-btn { display: none; } }
+.doc__tile img { width: 100%; height: auto; display: block; border-radius: var(--r-sm); background: var(--c-line-2); }
+.doc__tile .doc__zoom { transition: opacity var(--t-fast) ease; }
+.doc__tile .doc__zoom:hover { opacity: .88; }
+.doc__tile-cap {
+  padding-top: var(--s-1);
+  font-size: var(--fs-xs); color: var(--c-ink-2);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.doc__tile-cap > span + span::before { content: " · "; color: var(--c-soft); }
+.doc__tile-tag { font-family: var(--ff-mono); color: var(--c-accent); font-weight: 600; }
+@media (max-width: 600px) { .doc__mosaic { --gallery-row-h: var(--gallery-row-h-sm); } }
 
 /* fixtures: chip row */
 .doc__chips { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-bottom: var(--s-3); }
@@ -145,33 +148,46 @@
 .doc__foot-logo { max-height: 40px; max-width: 200px; object-fit: contain; }
 .doc__foot-name { color: var(--c-ink-2); }
 
-/* lightbox (модальный просмотр картинки) */
+/* lightbox: полноэкранная карусель (components/Lightbox.jsx + utils/exportScript.js) */
 .lightbox {
   border: none; padding: 0; background: transparent;
   max-width: 100vw; max-height: 100vh; width: 100vw; height: 100vh;
+  /* горизонтальный жест — наш свайп; вертикальный скролл и pinch-zoom остаются браузеру */
+  touch-action: pan-y pinch-zoom;
 }
-.lightbox::backdrop { background: rgba(0,0,0,.85); cursor: zoom-out; }
+/* display только у открытого: закрытый <dialog> должен оставаться скрытым */
+.lightbox[open] { display: flex; align-items: center; justify-content: center; }
+.lightbox::backdrop { background: var(--c-backdrop); cursor: zoom-out; }
 .lightbox__img {
-  max-width: 96vw; max-height: 92vh;
+  max-width: 96vw; max-height: 88vh;
   width: auto; height: auto;
   object-fit: contain;
-  display: block; margin: 0 auto;
+  display: block;
   border-radius: var(--r-md);
+  user-select: none; -webkit-user-drag: none; /* не тащить картинку вместо свайпа */
 }
 .lightbox__cap {
-  position: fixed; left: 0; right: 0; bottom: 16px;
-  text-align: center; color: #fff;
+  position: fixed; left: var(--s-4); right: var(--s-4); bottom: var(--s-4);
+  text-align: center; color: var(--c-on-overlay);
   font-family: var(--ff-mono); font-size: var(--fs-xs);
-  text-shadow: 0 1px 2px rgba(0,0,0,.8);
+  text-shadow: var(--sh-on-overlay);
 }
-.lightbox__close {
-  position: fixed; top: 12px; right: 16px;
-  width: 40px; height: 40px;
-  border: 1px solid rgba(255,255,255,.4);
-  background: rgba(0,0,0,.4);
-  color: #fff; border-radius: var(--r-pill);
-  font-size: 18px; cursor: pointer;
+.lightbox__cap > span:empty { display: none; }
+.lightbox__cap > span:not(:empty) ~ span:not(:empty)::before { content: " · "; opacity: .6; }
+.lightbox__title { color: var(--c-accent); font-weight: 600; }
+.lightbox__close, .lightbox__nav {
+  position: fixed;
+  border: 1px solid var(--c-overlay-line);
+  background: var(--c-overlay-btn);
+  color: var(--c-on-overlay); border-radius: var(--r-pill);
+  cursor: pointer;
   display: grid; place-items: center;
   z-index: 10;
 }
-.lightbox__close:hover { background: rgba(0,0,0,.7); }
+.lightbox__close { top: var(--s-3); right: var(--s-4); width: 40px; height: 40px; font-size: var(--fs-xl); }
+.lightbox__nav { top: 50%; transform: translateY(-50%); width: 48px; height: 48px; font-size: var(--fs-3xl); line-height: 1; }
+.lightbox__nav[hidden] { display: none; }
+.lightbox__nav--prev { left: var(--s-4); }
+.lightbox__nav--next { right: var(--s-4); }
+.lightbox__close:hover, .lightbox__nav:hover { background: var(--c-overlay-btn-h); }
+@media (max-width: 600px) { .lightbox__nav { width: 40px; height: 40px; } }

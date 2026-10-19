@@ -1,51 +1,49 @@
-import { useRef, useState } from "react";
+// Галерея: мозаика «justified rows». Фото не обрезаются и сохраняют свои
+// пропорции; в строке у всех одинаковая высота, порядок — слева направо.
+// Трюк (см. .doc__tile в document.css): flex-grow = соотношение сторон,
+// flex-basis = соотношение × высота строки → свободное место делится
+// пропорционально, высоты в строке выходят равными. Без JS — работает и в экспорте.
+// Клик по фото — полноэкранная карусель (Lightbox) по всем фото.
+import { useState } from "react";
 import { useT } from "../i18n/I18nProvider.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
 import { ZoomImage } from "./ZoomImage.jsx";
 
+// Для фото без известного размера (битая картинка в старом проекте)
+const FALLBACK_RATIO = 4 / 3;
+
+export function aspectRatio(photo) {
+  const ratio = photo.width > 0 && photo.height > 0 ? photo.width / photo.height : FALLBACK_RATIO;
+  return Math.round(ratio * 10_000) / 10_000;
+}
+
 export function DocGallery({ project }) {
   const { t } = useT();
+  const [index, setIndex] = useState(null);
   const photos = project.photos;
-  const ref = useRef(null);
-  const [zoom, setZoom] = useState(null);
-
-  const scroll = (direction) => {
-    const element = ref.current;
-    if (!element) { return; }
-    const width = element.clientWidth || 600;
-    element.scrollBy({ left: direction * width, behavior: "smooth" });
-  };
 
   if (photos.length === 0) { return null; }
+  const items = photos.map((photo) => ({ src: photo.src, title: photo.tag || "", caption: photo.caption || "" }));
   return (
-    <section className="doc__section">
+    <section className="doc__section" data-zoom-group="gallery">
       <h2 className="doc__h2">{t("doc.section.gallery")}</h2>
-      <div className="doc__gallery-wrap">
-        {photos.length > 1 && (
-          <>
-            <button type="button" className="doc__gallery-btn doc__gallery-btn--prev"
-                    aria-label={t("gallery.prev")} onClick={() => scroll(-1)}>‹</button>
-            <button type="button" className="doc__gallery-btn doc__gallery-btn--next"
-                    aria-label={t("gallery.next")} onClick={() => scroll(1)}>›</button>
-          </>
-        )}
-        <div className="doc__gallery" ref={ref}>
-          {photos.map((photo) => (
-            <figure key={photo.id} className="doc__photo">
-              <ZoomImage src={photo.src} alt={photo.tag || ""} caption={photo.tag || ""} onZoom={setZoom} />
-              <figcaption className="doc__photo-meta">
-                {photo.tag ? <div className="doc__photo-tag">{photo.tag}</div> : null}
-                {photo.caption ? <div>{photo.caption}</div> : null}
+      <div className="doc__mosaic">
+        {photos.map((photo, photoIndex) => (
+          <figure key={photo.id} className="doc__tile" style={{ "--ar": aspectRatio(photo) }}>
+            <ZoomImage
+              src={photo.src} alt={photo.tag || ""} title={photo.tag || ""} caption={photo.caption || ""}
+              onOpen={() => setIndex(photoIndex)}
+            />
+            {photo.tag || photo.caption ? (
+              <figcaption className="doc__tile-cap">
+                {photo.tag ? <span className="doc__tile-tag">{photo.tag}</span> : null}
+                {photo.caption ? <span>{photo.caption}</span> : null}
               </figcaption>
-            </figure>
-          ))}
-        </div>
+            ) : null}
+          </figure>
+        ))}
       </div>
-      <Lightbox
-        src={zoom?.src}
-        caption={zoom?.caption}
-        onClose={() => setZoom(null)}
-      />
+      <Lightbox items={items} index={index} onIndex={setIndex} onClose={() => setIndex(null)} />
     </section>
   );
 }
