@@ -1,39 +1,35 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { DICT } from "./dict.js";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { makeTranslator } from "./translate.js";
 
 const STORAGE_KEY = "tld.locale.v1";
 
 const I18nContext = createContext({
   locale: "ru",
   setLocale: () => {},
-  t: (key) => key,
-  tn: (key, n) => key,
+  ...makeTranslator("ru"),
 });
 
+function readSavedLocale() {
+  try {
+    return localStorage.getItem(STORAGE_KEY) || "ru";
+  } catch {
+    return "ru"; // localStorage недоступен (приватный режим, file:// в некоторых браузерах)
+  }
+}
+
 export function I18nProvider({ children, initialLocale }) {
-  const [locale, setLocale] = useState(() => {
-    if (initialLocale) return initialLocale;
-    try { return localStorage.getItem(STORAGE_KEY) || "ru"; } catch { return "ru"; }
-  });
+  const [locale, setLocale] = useState(() => initialLocale || readSavedLocale());
 
   useEffect(() => {
-    if (initialLocale) return; // при initialLocale (экспорт) не пишем в storage
-    try { localStorage.setItem(STORAGE_KEY, locale); } catch {}
+    if (initialLocale) { return; } // при initialLocale (экспорт) не пишем в storage
+    try {
+      localStorage.setItem(STORAGE_KEY, locale);
+    } catch {
+      // не удалось сохранить локаль — не критично, останется до перезагрузки
+    }
   }, [locale, initialLocale]);
 
-  const t = useCallback((key) => {
-    const dict = DICT[locale] || DICT.ru;
-    // плоский словарь: ключи вида "doc.foot.left" — это просто строки
-    const v = dict[key];
-    return (v == null) ? key : v;
-  }, [locale]);
-
-  const tn = useCallback((key, ...args) => {
-    const v = t(key);
-    return typeof v === "function" ? v(...args) : v;
-  }, [t]);
-
-  const value = useMemo(() => ({ locale, setLocale, t, tn }), [locale, t, tn]);
+  const value = useMemo(() => ({ locale, setLocale, ...makeTranslator(locale) }), [locale]);
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 

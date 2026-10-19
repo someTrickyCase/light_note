@@ -14,11 +14,11 @@ const MAX_ROWS = 8;
 // Считает количество строк, которое займёт текст при текущей ширине textarea.
 // Используем скрытый mirror-div с теми же стилями — это единственный
 // надёжный способ узнать фактическое число строк.
-function countLines(el) {
-	if (!el) return MIN_ROWS;
-	const style = window.getComputedStyle(el);
-	const lineHeight = parseFloat(style.lineHeight);
-	if (!lineHeight || Number.isNaN(lineHeight)) return MIN_ROWS;
+function countLines(element) {
+	if (!element) { return MIN_ROWS; }
+	const style = globalThis.getComputedStyle(element);
+	const lineHeight = Number.parseFloat(style.lineHeight);
+	if (!lineHeight || Number.isNaN(lineHeight)) { return MIN_ROWS; }
 	// Создаём невидимый mirror
 	const mirror = document.createElement("div");
 	mirror.style.position = "absolute";
@@ -27,13 +27,13 @@ function countLines(el) {
 	mirror.style.wordBreak = "break-word";
 	mirror.style.overflowWrap = "anywhere";
 	mirror.style.boxSizing = "border-box";
-	mirror.style.width = el.clientWidth + "px";
+	mirror.style.width = `${element.clientWidth}px`;
 	mirror.style.padding = style.padding;
 	mirror.style.font = style.font;
-	mirror.textContent = el.value || "";
-	document.body.appendChild(mirror);
+	mirror.textContent = element.value || "";
+	document.body.append(mirror);
 	const h = mirror.scrollHeight;
-	document.body.removeChild(mirror);
+	mirror.remove();
 	const lines = Math.max(MIN_ROWS, Math.ceil(h / lineHeight));
 	return Math.min(MAX_ROWS, lines);
 }
@@ -45,10 +45,9 @@ export const GrowTextarea = forwardRef(function GrowTextarea(
 	const [rows, setRows] = useState(MIN_ROWS);
 
 	useLayoutEffect(() => {
-		const el = ref && ref.current;
-		if (!el) return;
-		setRows(countLines(el));
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		const element = ref && ref.current;
+		if (!element) { return; }
+		setRows(countLines(element));
 	}, [ref, value]);
 
 	return (
@@ -57,7 +56,7 @@ export const GrowTextarea = forwardRef(function GrowTextarea(
 			rows={rows}
 			value={value}
 			className={cn("textarea", mono && "textarea--mono", "textarea--grow", className)}
-			onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
+			onFocus={selectOnFocus ? (event) => event.target.select() : undefined}
 			{...rest}
 		/>
 	);

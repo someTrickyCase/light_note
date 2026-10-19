@@ -355,3 +355,25 @@
 @keyframes toaster-out {
   to { transform: translateX(20px); opacity: 0; }
 }
+
+/* ---- editor: элементы, раньше задававшиеся inline-стилями ---- */
+.editor .editor__heading { font-size: var(--fs-2xl); margin-bottom: var(--s-6); }
+.editor__loading,
+.preview-frame--loading { color: var(--c-soft); font-family: var(--ff-mono); font-size: var(--fs-sm); }
+.preview-frame--loading { min-height: 200px; display: grid; place-items: center; }
+.editor__title-meta { margin-left: var(--s-2); color: var(--c-soft); font-family: var(--ff-mono); font-size: var(--fs-xs); }
+.editor__title-badge { margin-left: var(--s-2); }
+.editor__actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
+.editor__actions--end { justify-content: flex-end; }
+.plot-uploader > * + * { margin-top: var(--s-2); }
+.logo-preview { display: flex; align-items: center; gap: var(--s-2); }
+.logo-preview__img {
+  max-height: 40px; max-width: 180px; object-fit: contain;
+  background: var(--c-surface); padding: var(--s-1);
+  border: 1px solid var(--c-line); border-radius: var(--r-sm);
+}
+
+/* ---- toaster: строка сообщения ---- */
+.toaster__row { display: flex; gap: var(--s-2); align-items: flex-start; }
+.toaster__msg { flex: 1; }
+.toaster__close { background: none; border: 0; color: inherit; cursor: pointer; padding: 0; font-size: var(--fs-md); }

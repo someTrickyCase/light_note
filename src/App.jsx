@@ -12,6 +12,7 @@ import { exportDocument } from "./utils/exportHtml.jsx";
 import { useQuotaWatch } from "./utils/useQuotaWatch.js";
 
 import { Button } from "./components/Button.jsx";
+import { ConfirmButton } from "./components/ConfirmButton.jsx";
 import { QuotaLights } from "./components/QuotaLights.jsx";
 import { Toaster } from "./components/Toaster.jsx";
 
@@ -33,7 +34,7 @@ function Topbar() {
 	return (
 		<header className="topbar">
 			<div className="topbar__logo">
-				LIGHT<b>·</b>NOTE
+				{t("app.logo.left")}<b>·</b>{t("app.logo.right")}
 			</div>
 			<span className="topbar__sep" />
 			<span className="topbar__meta">{t("app.tagline")}</span>
@@ -44,16 +45,16 @@ function Topbar() {
 			</span>
 			<div className="topbar__spacer" />
 			<div className="topbar__actions">
-				<Button
+				<ConfirmButton
 					variant="ghost"
 					size="sm"
-					onClick={() => {
-						if (confirm(t("common.confirmNew"))) d({ type: "RESET" });
-					}}
+					title={t("common.confirmNew")}
+					confirmLabel={t("app.actions.new.confirm")}
+					onConfirm={() => d({ type: "RESET" })}
 				>
 					{t("app.actions.new")}
-				</Button>
-				<Button variant="ghost" size="sm" onClick={() => window.print()}>
+				</ConfirmButton>
+				<Button variant="ghost" size="sm" onClick={() => globalThis.print()}>
 					🖨 {t("app.actions.print")}
 				</Button>
 				<Button variant="primary" size="sm" onClick={() => { void exportDocument(p); }}>
@@ -68,17 +69,11 @@ function Editor() {
 	const { t } = useT();
 	const loading = useProjectLoading();
 	if (loading) {
-		return (
-			<aside className="editor" style={{ color: "var(--c-soft)", fontFamily: "var(--ff-mono)", fontSize: "var(--fs-sm)" }}>
-				Загружаем проект…
-			</aside>
-		);
+		return <aside className="editor editor__loading">{t("app.loading")}</aside>;
 	}
 	return (
 		<aside className="editor">
-			<h1 className="doc__title" style={{ fontSize: 22, marginBottom: 24 }}>
-				{t("editor.heading")}
-			</h1>
+			<h1 className="doc__title editor__heading">{t("editor.heading")}</h1>
 			<MetaSection />
 			<TimesSection />
 			<StaffSection />
@@ -92,16 +87,14 @@ function Editor() {
 }
 
 function Preview() {
-	const { t } = useT();
+	const { t, tn } = useT();
 	const p = useProject();
 	const loading = useProjectLoading();
 	const { level, usedBytes } = useQuotaWatch(p, t);
 	if (!p || loading) {
 		return (
 			<main className="preview-wrap">
-				<div className="preview-frame" style={{ minHeight: 200, display: "grid", placeItems: "center", color: "var(--c-soft)", fontFamily: "var(--ff-mono)", fontSize: "var(--fs-sm)" }}>
-					Загружаем проект…
-				</div>
+				<div className="preview-frame preview-frame--loading">{t("app.loading")}</div>
 			</main>
 		);
 	}
@@ -110,9 +103,7 @@ function Preview() {
 			<div className="preview-frame">
 				<div className="preview-frame__bar">
 					<QuotaLights level={level} usedBytes={usedBytes} />
-					<span className="u">
-						light-note · {p.meta.showName || "новое шоу"}
-					</span>
+					<span className="u">{tn("app.frame.title", p.meta.showName)}</span>
 				</div>
 				<DocumentView project={p} />
 			</div>
@@ -120,33 +111,26 @@ function Preview() {
 	);
 }
 
+// Сообщение для тоста по результату storage.save (см. state/storage.js)
+function storageToast(tn, isQuota, error, info) {
+	if (isQuota && info?.offloaded) {
+		return { tone: "ok", ttl: 8000, msg: tn("storage.toast.offloaded") };
+	}
+	if (isQuota) {
+		return { tone: "err", ttl: 0, msg: tn("storage.toast.quota") };
+	}
+	return { tone: "warn", msg: tn("storage.toast.error", error.message || error) };
+}
+
 function Shell() {
+	const { tn } = useT();
 	// связываем storage._onError → pushToast (для quota-уведомлений)
 	useEffect(() => {
-		storage._onError = (isQuota, e, info) => {
-			if (isQuota && info && info.offloaded) {
-				pushToast({
-					tone: "ok",
-					ttl: 8000,
-					msg: "✓ Большие файлы перенесены в надёжное хранилище браузера — проект сохранён.",
-				});
-			} else if (isQuota) {
-				pushToast({
-					tone: "err",
-					ttl: 0,
-					msg: "Не удалось сохранить в браузер: переполнение. Сократите число фото или их размер.",
-				});
-			} else {
-				pushToast({
-					tone: "warn",
-					msg: "Ошибка сохранения: " + (e.message || e),
-				});
-			}
-		};
+		storage._onError = (isQuota, error, info) => pushToast(storageToast(tn, isQuota, error, info));
 		return () => {
 			storage._onError = null;
 		};
-	}, []);
+	}, [tn]);
 
 	return (
 		<div className="app">

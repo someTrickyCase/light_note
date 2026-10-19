@@ -19,21 +19,21 @@ export function TimesSection() {
 				>
 					<Input
 						value={p.times.installation}
-						onChange={(e) => set({ installation: e.target.value })}
+						onChange={(event) => set({ installation: event.target.value })}
 						placeholder={t("times.installation.ph")}
 					/>
 				</Field>
 				<Field label={t("times.focus")} hint={t("times.focus.note")}>
 					<Input
 						value={p.times.focus}
-						onChange={(e) => set({ focus: e.target.value })}
+						onChange={(event) => set({ focus: event.target.value })}
 						placeholder={t("times.focus.ph")}
 					/>
 				</Field>
 				<Field label={t("times.runtime")}>
 					<Input
 						value={p.times.runtime}
-						onChange={(e) => set({ runtime: e.target.value })}
+						onChange={(event) => set({ runtime: event.target.value })}
 						placeholder={t("times.runtime.ph")}
 					/>
 				</Field>

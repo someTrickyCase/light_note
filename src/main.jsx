@@ -11,12 +11,12 @@ import "./styles/index.css";
 // автономный HTML. Читаем из <style> тегов (CSS инлайнится в build).
 // В dev Vite может инжектить через <style data-vite-dev-id> —
 // querySelectorAll("style") подхватит всё.
-const cssText = Array.from(document.querySelectorAll("style"))
+const cssText = [...document.querySelectorAll("style")]
   .map((s) => s.textContent || "")
   .join("\n");
-window.__INJECTED_CSS__ = cssText;
+globalThis.__INJECTED_CSS__ = cssText;
 
-createRoot(document.getElementById("root")).render(
+createRoot(document.querySelector("#root")).render(
   <StrictMode>
     <App />
   </StrictMode>

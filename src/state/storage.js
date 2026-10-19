@@ -14,23 +14,22 @@ const PREFIX = "__idbRef:";
 
 // dataURL "data:image/jpeg;base64,xxxxx" → { mime, blob }
 function dataURLToBlob(dataURL) {
-	if (!dataURL || typeof dataURL !== "string") return null;
+	if (!dataURL || typeof dataURL !== "string") { return null; }
 	const m = /^data:([^;]+);base64,(.*)$/.exec(dataURL);
-	if (!m) return null;
+	if (!m) { return null; }
 	const mime = m[1];
-	const bin = atob(m[2]);
-	const bytes = new Uint8Array(bin.length);
-	for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+	// atob даёт «бинарную строку»: каждый символ — один байт (0–255)
+	const bytes = Uint8Array.from(atob(m[2]), (char) => char.codePointAt(0));
 	return { mime, blob: new Blob([bytes], { type: mime }) };
 }
 
 // Blob → dataURL "data:image/jpeg;base64,xxxxx"
-function blobToDataURL(blob, mime) {
+function blobToDataURL(blob) {
 	return new Promise((resolve, reject) => {
-		const r = new FileReader();
-		r.onload = () => resolve(r.result);
-		r.onerror = () => reject(r.error);
-		r.readAsDataURL(blob);
+		const reader = new FileReader();
+		reader.addEventListener("load", () => resolve(reader.result));
+		reader.addEventListener("error", () => reject(reader.error));
+		reader.readAsDataURL(blob);
 	});
 }
 
@@ -40,146 +39,130 @@ function refIdFor(kind, key) {
 	return `${kind}:${key}:${uid()}`;
 }
 
-// Рекурсивно обходит проект, вытаскивая бинарники из полей photos[].src,
-// plots.base/show и meta.logo. Возвращает новый проект + список перенесённых блобов.
-async function moveBinariesToIDB(project, alreadyRefs) {
-	let next = project;
-	const moved = []; // {kind, refId, blob, mime, restore(fieldPath)}
+const isRef = (value) => typeof value === "string" && value.startsWith(PREFIX);
 
-	// photos
-	if (Array.isArray(next.photos)) {
-		const newPhotos = [];
-		for (let i = 0; i < next.photos.length; i++) {
-			const ph = next.photos[i];
-			if (!ph || !ph.src) { newPhotos.push(ph); continue; }
-			if (typeof ph.src === "string" && ph.src.startsWith(PREFIX)) {
-				// уже в IDB, оставляем
-				newPhotos.push(ph);
-				continue;
-			}
-			const parsed = dataURLToBlob(ph.src);
-			if (!parsed) { newPhotos.push(ph); continue; }
-			const refId = refIdFor("photo", ph.id || String(i));
-			await idb.putBlob(refId, parsed.blob, parsed.mime);
-			moved.push({ refId, blob: parsed.blob, mime: parsed.mime });
-			newPhotos.push({ ...ph, src: PREFIX + refId });
-		}
-		next = { ...next, photos: newPhotos };
-	}
-
-	// plots: { base, show }
-	if (next.plots && (next.plots.base || next.plots.show)) {
-		const newPlots = { ...next.plots };
-		for (const which of ["base", "show"]) {
-			const v = newPlots[which];
-			if (!v) continue;
-			if (typeof v === "string" && v.startsWith(PREFIX)) continue;
-			const parsed = dataURLToBlob(v);
-			if (!parsed) continue;
-			const refId = refIdFor("plot", which);
-			await idb.putBlob(refId, parsed.blob, parsed.mime);
-			moved.push({ refId, blob: parsed.blob, mime: parsed.mime });
-			newPlots[which] = PREFIX + refId;
-		}
-		next = { ...next, plots: newPlots };
-	}
-
-	// meta.logo
-	if (next.meta && next.meta.logo && typeof next.meta.logo === "string" && !next.meta.logo.startsWith(PREFIX)) {
-		const parsed = dataURLToBlob(next.meta.logo);
-		if (parsed) {
-			const refId = refIdFor("logo", "main");
-			await idb.putBlob(refId, parsed.blob, parsed.mime);
-			moved.push({ refId, blob: parsed.blob, mime: parsed.mime });
-			next = { ...next, meta: { ...next.meta, logo: PREFIX + refId } };
-		}
-	}
-
-	return { project: next, moved };
+// Одно бинарное поле → IDB. Возвращает маркер "__idbRef:<id>" или исходное
+// значение, если переносить нечего (пусто, уже маркер, не dataURL).
+async function offloadValue(value, kind, key) {
+	if (!value || isRef(value)) { return value; }
+	const parsed = dataURLToBlob(value);
+	if (!parsed) { return value; }
+	const refId = refIdFor(kind, key);
+	await idb.putBlob(refId, parsed.blob, parsed.mime);
+	return PREFIX + refId;
 }
 
-// Обратный путь: проходим проект и заменяем __idbRef:xxx на реальные dataURL из IDB.
-export async function resolveRefs(project) {
-	if (!project) return project;
-	let next = project;
-
-	// photos
-	if (Array.isArray(next.photos)) {
-		const newPhotos = [];
-		for (let i = 0; i < next.photos.length; i++) {
-			const ph = next.photos[i];
-			if (!ph || typeof ph.src !== "string" || !ph.src.startsWith(PREFIX)) {
-				newPhotos.push(ph);
-				continue;
-			}
-			const refId = ph.src.slice(PREFIX.length);
-			const blob = await idb.getBlob(refId);
-			if (!blob) { newPhotos.push({ ...ph, src: "" }); continue; } // блоб потерян — пусто
-			const dataURL = await blobToDataURL(blob);
-			newPhotos.push({ ...ph, src: dataURL });
-		}
-		next = { ...next, photos: newPhotos };
-	}
-
-	// plots
-	if (next.plots && (next.plots.base || next.plots.show)) {
-		const newPlots = { ...next.plots };
-		for (const which of ["base", "show"]) {
-			const v = newPlots[which];
-			if (!v || typeof v !== "string" || !v.startsWith(PREFIX)) continue;
-			const refId = v.slice(PREFIX.length);
-			const blob = await idb.getBlob(refId);
-			if (blob) newPlots[which] = await blobToDataURL(blob);
-		}
-		next = { ...next, plots: newPlots };
-	}
-
-	// logo
-	if (next.meta && next.meta.logo && typeof next.meta.logo === "string" && next.meta.logo.startsWith(PREFIX)) {
-		const refId = next.meta.logo.slice(PREFIX.length);
-		const blob = await idb.getBlob(refId);
-		if (blob) next = { ...next, meta: { ...next.meta, logo: await blobToDataURL(blob) } };
-	}
-
-	return next;
+// Обратный путь для одного поля: маркер → dataURL из IDB.
+// missing — что вернуть, если блоб потерян.
+async function restoreValue(value, missing) {
+	if (!isRef(value)) { return value; }
+	const blob = await idb.getBlob(value.slice(PREFIX.length));
+	return blob ? blobToDataURL(blob) : missing;
 }
+
+// Применяет fn ко всем бинарным полям проекта: photos[].src, plots.base/show, meta.logo.
+// transform(value, kind, key, fallback) → Promise<newValue>. Поля обрабатываются параллельно.
+async function mapBinaries(project, transform) {
+	const photos = Array.isArray(project.photos)
+		? await Promise.all(project.photos.map(async (photo, index) => {
+			if (!photo || !photo.src) { return photo; }
+			const source = await transform(photo.src, "photo", photo.id || String(index), "");
+			return source === photo.src ? photo : { ...photo, src: source };
+		}))
+		: project.photos;
+
+	const plots = project.plots
+		? {
+			...project.plots,
+			...Object.fromEntries(await Promise.all(["base", "show"].map(async (which) => {
+				const value = project.plots[which];
+				return [which, value ? await transform(value, "plot", which, value) : value];
+			}))),
+		}
+		: project.plots;
+
+	const meta = project.meta?.logo
+		? { ...project.meta, logo: await transform(project.meta.logo, "logo", "main", project.meta.logo) }
+		: project.meta;
+
+	return { ...project, photos, plots, meta };
+}
+
+// Переносит бинарники проекта в IDB, в проекте оставляет маркеры.
+function moveBinariesToIDB(project) {
+	return mapBinaries(project, (value, kind, key) => offloadValue(value, kind, key));
+}
+
+// Заменяет маркеры __idbRef:xxx на реальные dataURL из IDB.
+// Потерянное фото → пустая строка; потерянный плот/логотип остаётся маркером.
+export function resolveReferences(project) {
+	if (!project) { return Promise.resolve(project); }
+	return mapBinaries(project, (value, kind, key, missing) => restoreValue(value, missing));
+}
+
+// ---- миграции и санитизация сохранённого проекта ----
+
+function migrateMeta(saved) {
+	const meta = { ...emptyProject().meta, ...saved };
+	if ("programmer" in meta) {
+		meta.director = meta.director || meta.programmer;
+		delete meta.programmer;
+	}
+	if (!("logo" in meta)) { meta.logo = null; }
+	return meta;
+}
+
+function migrateTimes(saved) {
+	const times = { ...emptyProject().times, ...saved };
+	if (!Array.isArray(times.staff)) { times.staff = []; }
+	return times;
+}
+
+const normalizeCue = (c) => ({
+	id: c.id || uid(),
+	num: c.num ?? "",
+	name: c.name || "",
+	info: c.info ?? "",
+	cmd: c.cmd ?? "",
+	fade: c.fade ?? "",
+	trigger: c.trigger || "Go",
+});
+
+// санитизация fixtures: добавляем info если нет
+const normalizeFixture = (f) => ({
+	id: f.id || uid(),
+	type: f.type || "",
+	qty: Number(f.qty) || 1,
+	info: f.info ?? "",
+});
+
+const normalizeList = (list, normalize) => (Array.isArray(list) ? list.map((item) => normalize(item)) : []);
+
+function migrateProject(parsed) {
+	return {
+		...emptyProject(),
+		...parsed,
+		meta: migrateMeta(parsed.meta),
+		times: migrateTimes(parsed.times),
+		cues: normalizeList(parsed.cues, normalizeCue),
+		fixtures: normalizeList(parsed.fixtures, normalizeFixture),
+	};
+}
+
+const isQuotaError = (error) =>
+	Boolean(error) && (error.name === "QuotaExceededError" || /quota/i.test(String(error.message)));
 
 export const storage = {
 	// Асинхронный: восстанавливает блобы из IDB перед возвратом.
 	async load() {
 		try {
 			const raw = localStorage.getItem(STORAGE_KEY);
-			if (!raw) return emptyProject();
+			if (!raw) { return emptyProject(); }
 			const parsed = JSON.parse(raw);
-			if (!parsed || parsed.version !== 1) return emptyProject();
-			const m = { ...emptyProject().meta, ...(parsed.meta || {}) };
-			if ("programmer" in m) {
-				m.director = m.director || m.programmer;
-				delete m.programmer;
-			}
-			if (!("logo" in m)) m.logo = null;
-			const tm = { ...emptyProject().times, ...(parsed.times || {}) };
-			if (!Array.isArray(tm.staff)) tm.staff = [];
-			const cues = Array.isArray(parsed.cues) ? parsed.cues.map((c) => ({
-				id: c.id || uid(),
-				num: c.num ?? "",
-				name: c.name || "",
-				info: c.info ?? "",
-				cmd: c.cmd ?? "",
-				fade: c.fade ?? "",
-				trigger: c.trigger || "Go",
-			})) : [];
-			// санитизация fixtures: добавляем info если нет
-			const fixtures = Array.isArray(parsed.fixtures) ? parsed.fixtures.map((f) => ({
-				id: f.id || uid(),
-				type: f.type || "",
-				qty: Number(f.qty) || 1,
-				info: f.info ?? "",
-			})) : [];
-			const base = { ...emptyProject(), ...parsed, meta: m, times: tm, cues, fixtures };
-			return await resolveRefs(base);
-		} catch (e) {
-			console.warn("[storage] load failed:", e);
+			if (!parsed || parsed.version !== 1) { return emptyProject(); }
+			return await resolveReferences(migrateProject(parsed));
+		} catch (error) {
+			console.warn("[storage] load failed:", error);
 			return emptyProject();
 		}
 	},
@@ -187,35 +170,39 @@ export const storage = {
 	// Сохраняет проект. Если не влезает в localStorage — переносит
 	// бинарники в IDB и пробует снова. Возвращает { ok, offloaded }.
 	async save(project) {
-		const raw = JSON.stringify(project);
 		try {
-			localStorage.setItem(STORAGE_KEY, raw);
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
 			return { ok: true, offloaded: false };
-		} catch (e) {
-			const isQuota =
-				e && (e.name === "QuotaExceededError" || /quota/i.test(String(e.message)));
-			if (!isQuota) {
-				console.warn("[storage] save failed:", e);
-				if (storage._onError) storage._onError(false, e);
+		} catch (error) {
+			if (!isQuotaError(error)) {
+				console.warn("[storage] save failed:", error);
+				storage._onError?.(false, error);
 				return { ok: false, offloaded: false };
 			}
-			// Quota → переносим бинарники в IDB
-			try {
-				const { project: slim } = await moveBinariesToIDB(project);
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
-				console.info("[storage] offloaded binaries to IDB");
-				if (storage._onError) storage._onError(true, e, { offloaded: true });
-				return { ok: true, offloaded: true };
-			} catch (e2) {
-				console.warn("[storage] offload failed:", e2);
-				if (storage._onError) storage._onError(true, e2);
-				return { ok: false, offloaded: false };
-			}
+			return storage._offload(project, error);
+		}
+	},
+
+	// Quota → переносим бинарники в IDB и сохраняем «облегчённый» проект
+	async _offload(project, quotaError) {
+		try {
+			const slim = await moveBinariesToIDB(project);
+			localStorage.setItem(STORAGE_KEY, JSON.stringify(slim));
+			storage._onError?.(true, quotaError, { offloaded: true });
+			return { ok: true, offloaded: true };
+		} catch (offloadError) {
+			console.warn("[storage] offload failed:", offloadError);
+			storage._onError?.(true, offloadError);
+			return { ok: false, offloaded: false };
 		}
 	},
 
 	clear() {
-		try { localStorage.removeItem(STORAGE_KEY); } catch {}
+		try {
+			localStorage.removeItem(STORAGE_KEY);
+		} catch {
+			// localStorage недоступен — очищать нечего
+		}
 		idb.clearBlobs().catch(() => {});
 	},
 	_onError: null,

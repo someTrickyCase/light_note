@@ -4,7 +4,7 @@ import { cn } from "./cn.js";
 export function Field({ label, hint, error, children, className }) {
   return (
     <label className={cn("field", error && "field--err", className)}>
-      {label && <span className="field__label">{label}</span>}
+      {label ? <span className="field__label">{label}</span> : null}
       {children}
       {error ? <span className="field__err">{error}</span>
               : hint && <span className="field__hint">{hint}</span>}
@@ -20,7 +20,7 @@ export const Input = forwardRef(function Input(
     <input
       ref={ref}
       className={cn("input", mono && "input--mono", className)}
-      onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
+      onFocus={selectOnFocus ? (event) => event.target.select() : undefined}
       {...rest}
     />
   );
@@ -34,7 +34,7 @@ export const Textarea = forwardRef(function Textarea(
     <textarea
       ref={ref}
       className={cn("textarea", mono && "textarea--mono", className)}
-      onFocus={selectOnFocus ? (e) => e.target.select() : undefined}
+      onFocus={selectOnFocus ? (event) => event.target.select() : undefined}
       {...rest}
     />
   );

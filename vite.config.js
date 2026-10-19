@@ -23,7 +23,7 @@ function inlineCssPlugin() {
 					.join("\n");
 				// убираем <link rel="stylesheet" href="..."> вставляем <style>...</style>
 				return html
-					.replace(/<link[^>]+rel="stylesheet"[^>]*>/g, "")
+					.replaceAll(/<link[^>]+rel="stylesheet"[^>]*>/g, "")
 					.replace("</head>", `<style>${css}</style></head>`);
 			},
 		},

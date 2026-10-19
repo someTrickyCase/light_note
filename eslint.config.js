@@ -19,7 +19,7 @@ import unicorn from "eslint-plugin-unicorn";
 function strict(config) {
 	const rules = Object.fromEntries(
 		Object.entries(config.rules ?? {}).map(([name, value]) => {
-			if (value === "warn" || value === 1) return [name, "error"];
+			if (value === "warn" || value === 1) {return [name, "error"];}
 			if (Array.isArray(value) && (value[0] === "warn" || value[0] === 1)) {
 				return [name, ["error", ...value.slice(1)]];
 			}
@@ -31,9 +31,19 @@ function strict(config) {
 
 // Сырые значения в style={{}}: числа (= px), "12px", hex, rgb().
 // Значения должны идти через var(--token), см. docs/TOKENS.md.
-const RAW_STYLE_VALUE =
-	"JSXAttribute[name.name='style'] Property > Literal[raw=/^-?[1-9]/], " +
-	"JSXAttribute[name.name='style'] Property > Literal[value=/\\d(px|rem|em)\\b|#[0-9a-f]{3,8}\\b|rgba?\\(/i]";
+const RAW_STYLE_VALUE = [
+	"JSXAttribute[name.name='style'] Property > Literal[raw=/^-?[1-9]/]",
+	String.raw`JSXAttribute[name.name='style'] Property > Literal[value=/\d(px|rem|em)\b|#[0-9a-f]{3,8}\b|rgba?\(/i]`,
+].join(", ");
+
+// Кириллица в строках = непереведённый текст. Ловит то, что пропускает
+// react/jsx-no-literals: пропсы (aria-label, placeholder), тернарники, тосты в .js.
+const CYRILLIC_LITERAL = "Literal[value=/[а-яё]/i]:not([regex]), TemplateElement[value.raw=/[а-яё]/i]";
+
+const RESTRICTED_SYNTAX = [
+	{ selector: RAW_STYLE_VALUE, message: "Raw value in style={{}}: use var(--token) from src/styles/tokens.css." },
+	{ selector: CYRILLIC_LITERAL, message: "Hardcoded UI text: add a key to src/i18n/dict.js and use t()." },
+];
 
 export default [
 	{ ignores: ["dist/**", "node_modules/**"] },
@@ -97,7 +107,7 @@ export default [
 			"no-useless-return": "error",
 			"no-var": "error",
 			"object-shorthand": "error",
-			"prefer-arrow-callback": "error",
+			"prefer-arrow-callback": ["error", { allowNamedFunctions: true }], // forwardRef(function Name…) — имя видно в DevTools
 			"prefer-const": "error",
 			"prefer-template": "error",
 			yoda: "error",
@@ -141,10 +151,7 @@ export default [
 			],
 
 			// Проектное правило: в inline-стилях только токены.
-			"no-restricted-syntax": [
-				"error",
-				{ selector: RAW_STYLE_VALUE, message: "Raw value in style={{}}: use var(--token) from src/styles/tokens.css." },
-			],
+			"no-restricted-syntax": ["error", ...RESTRICTED_SYNTAX],
 
 			// Проектное правило: хранилища браузера — только в state/ (и локаль в I18nProvider).
 			"no-restricted-globals": [
@@ -170,6 +177,12 @@ export default [
 	{
 		files: ["src/state/storage.js", "src/state/idb.js", "src/i18n/I18nProvider.jsx"],
 		rules: { "no-restricted-globals": "off" },
+	},
+
+	// словарь — единственное место для текста
+	{
+		files: ["src/i18n/dict.js"],
+		rules: { "no-restricted-syntax": ["error", RESTRICTED_SYNTAX[0]] },
 	},
 
 	// doc/* — чистая функция от project: рендерится в preview, export и print
@@ -203,6 +216,6 @@ export default [
 	{
 		files: ["*.config.js", "scripts/**"],
 		languageOptions: { globals: { ...globals.node } },
-		rules: { "no-console": "off" },
+		rules: { "no-console": "off", "no-restricted-syntax": "off" }, // правила про UI-текст и стили — только для src/
 	},
 ];

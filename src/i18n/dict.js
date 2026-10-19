@@ -15,6 +15,20 @@ export const DICT = {
 		"app.actions.new": "Новый",
 		"app.status.saved": "Сохранено локально",
 		"app.status.unsaved": "Не сохранено",
+		"app.actions.new.confirm": "Точно? Нажмите ещё раз",
+		"app.logo.left": "LIGHT",
+		"app.logo.right": "NOTE",
+		"app.loading": "Загружаем проект…",
+		"app.frame.title": (name) => `light-note · ${name || "новое шоу"}`,
+
+		"storage.toast.offloaded":
+			"✓ Большие файлы перенесены в надёжное хранилище браузера — проект сохранён.",
+		"storage.toast.quota":
+			"Не удалось сохранить в браузер: переполнение. Сократите число фото или их размер.",
+		"storage.toast.error": (message) => `Ошибка сохранения: ${message}`,
+
+		"export.title": (name) => `${name} · техническая документация`,
+		"export.unavailable": "renderToStaticMarkup недоступен — нельзя экспортировать.",
 
 		"editor.heading": "Параметры шоу",
 		"editor.meta": "Общие сведения",
@@ -38,6 +52,12 @@ export const DICT = {
 		"meta.console.ph": "grandMA2, ETC Eos, …",
 		"meta.logo": "Логотип проката / театра",
 		"meta.logo.help": "PNG / SVG · отображается в нижнем колонтитуле документа",
+		"meta.logo.upload": "Загрузить логотип",
+		"meta.logo.alt": "логотип",
+
+		"drop.default": "Перетащите файлы сюда или нажмите для выбора",
+		"drop.busy": "Обработка…",
+		"drop.error": (message) => `Не удалось обработать файл: ${message}`,
 
 		"times.installation": "Время на монтаж",
 		"times.installation.ph": "например, 2 ч 30 мин",
@@ -74,6 +94,9 @@ export const DICT = {
 		"gallery.count": (n) => `${n} фото`,
 		"gallery.clearAll": "Удалить все",
 		"gallery.confirmClear": "Удалить все фотографии? Это действие нельзя отменить.",
+		"gallery.clearAll.confirm": "Точно удалить все?",
+		"gallery.prev": "Предыдущее фото",
+		"gallery.next": "Следующее фото",
 
 		"fixtures.add": "Добавить прибор",
 		"fixtures.type.ph": "Название / модель (Source Four 26°, Mac Quantum, …)",
@@ -92,8 +115,11 @@ export const DICT = {
 			"Список сцен пуст. Нажмите «Добавить сцену», чтобы внести первую запись.",
 		"cues.import": "Импорт из MA2 XML",
 		"cues.import.hint": "Выберите XML, экспортированный из grandMA2 onPC (Sequence → Export → XML).",
-		"cues.import.ok": "Импортировано {n} сцен из MA2 XML",
-		"cues.import.warn": "Импорт выполнен с предупреждениями: {n}",
+		"cues.import.ok": (n) => `Импортировано ${n} сцен из MA2 XML`,
+		"cues.import.fail": (reason) => `Не удалось извлечь сцены из XML: ${reason || "пустой результат"}`,
+		"cues.import.readError": (message) => `Ошибка чтения файла: ${message}`,
+		"cues.hasCmd": "есть cmd",
+		"cues.info.ph": "Описание сцены",
 		"cues.col.num": "№",
 		"cues.col.name": "Название",
 		"cues.col.info": "Описание",
@@ -104,10 +130,34 @@ export const DICT = {
 		"cues.cmd.ph": "On Executor 1.…; Executor 1.… At 100 Fade 3",
 		"cues.trigger.ph": "Go / Follow / Time",
 		"cues.search.ph": "Поиск по сценам (название, описание, cmd)",
-		"cues.search.empty": "Ничего не найдено по запросу «{q}»",
+		"cues.search.empty": (q) => `Ничего не найдено по запросу «${q}»`,
 		"cues.summary": (n, total) => `Показано ${n} из ${total}`,
 		"cues.expand": "Развернуть",
 		"cues.collapse": "Свернуть",
+
+		"ma2.warn.empty": "Пустой ввод",
+		"ma2.warn.invalidXml": (detail) => `Невалидный XML: ${detail}`,
+		"ma2.warn.noCues":
+			"В XML не найдено ни одного <Cue>. Проверь, что это экспорт sequence, а не fixture library.",
+
+		"md.toolbar": "Форматирование",
+		"md.hint": "Markdown:",
+		"md.bold.label": "B",
+		"md.bold.title": "Жирный: **текст**",
+		"md.bold.ph": "жирный",
+		"md.italic.label": "I",
+		"md.italic.title": "Курсив: _текст_",
+		"md.italic.ph": "курсив",
+		"md.h3.label": "H3",
+		"md.h3.title": "Заголовок: ### текст (с новой строки)",
+		"md.h3.ph": "заголовок",
+		"md.ul.title": "Маркированный список: - пункт (с новой строки)",
+		"md.ul.ph": "пункт",
+		"md.quote.title": "Цитата: > текст (с новой строки)",
+		"md.quote.ph": "цитата",
+		"md.link.title": "Ссылка: [текст](https://...)",
+		"md.link.ph": "текст",
+		"md.code.ph": "код",
 
 		"commentary.ph":
 			"Свободный текст · переносы строк сохраняются. Можно описывать драматургию света, технические нюансы, согласования с режиссёром и т.п.",
@@ -130,6 +180,13 @@ export const DICT = {
 		"doc.foot.right": "",
 
 		"common.delete": "Удалить",
+		"common.close": "Закрыть",
+		"common.replace": "Заменить",
+		"common.zoom": "Увеличить",
+
+		"unit.b": "Б",
+		"unit.kb": "КБ",
+		"unit.mb": "МБ",
 
 		"quota.aria": "Индикатор занятого места в браузере",
 		"quota.tip.ok.idle": "Запас места в браузере (зелёный)",

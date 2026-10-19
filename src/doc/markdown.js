@@ -9,13 +9,13 @@ import { escapeHtml } from "../utils/files.js";
 function mdInline(s) {
   let out = escapeHtml(s);
   // инлайн-код (до остального, чтобы не трогать содержимое)
-  out = out.replace(/`([^`]+)`/g, "<code>$1</code>");
+  out = out.replaceAll(/`([^`]+)`/g, "<code>$1</code>");
   // жирный
-  out = out.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  out = out.replaceAll(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   // курсив
-  out = out.replace(/_([^_]+)_/g, "<em>$1</em>");
+  out = out.replaceAll(/_([^_]+)_/g, "<em>$1</em>");
   // ссылки [text](url)
-  out = out.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, txt, url) => {
+  out = out.replaceAll(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, txt, url) => {
     const safe = /^(https?:|mailto:|#|\/\/)/i.test(url) ? url : "#";
     return `<a href="${escapeHtml(safe)}" target="_blank" rel="noopener noreferrer">${txt}</a>`;
   });
@@ -35,65 +35,60 @@ const isAnyBlockPrefix = (s) =>
   BLOCK_RE.heading.test(s) || BLOCK_RE.quote.test(s) ||
   BLOCK_RE.ul.test(s)      || BLOCK_RE.ol.test(s);
 
-export function renderMarkdown(src) {
-  if (!src) return "";
-  const lines = String(src).replace(/\r\n?/g, "\n").split("\n");
+// Собирает подряд идущие строки, пока test(line) истинно.
+// Возвращает собранные строки (через map) и индекс первой несобранной.
+function collect(lines, start, test, map = (line) => line) {
+  const items = [];
+  let index = start;
+  while (index < lines.length && test(lines[index])) {
+    items.push(map(lines[index]));
+    index++;
+  }
+  return { items, next: index };
+}
+
+// Блоки, которые собираются из нескольких строк подряд.
+const MULTILINE_BLOCKS = [
+  { re: BLOCK_RE.quote, render: (items) => `<blockquote>${mdInline(items.join(" "))}</blockquote>` },
+  { re: BLOCK_RE.ul, render: (items) => `<ul>${items.map((x) => `<li>${mdInline(x)}</li>`).join("")}</ul>` },
+  { re: BLOCK_RE.ol, render: (items) => `<ol>${items.map((x) => `<li>${mdInline(x)}</li>`).join("")}</ol>` },
+];
+
+const isParagraphLine = (line) => Boolean(line.trim()) && !isAnyBlockPrefix(line);
+
+// Разбирает один блок, начиная с lines[index]. Возвращает { html, next }.
+function renderBlock(lines, index) {
+  const line = lines[index];
+
+  const h = line.match(BLOCK_RE.heading);
+  if (h) {
+    return { html: `<h${h[1].length}>${mdInline(h[2])}</h${h[1].length}>`, next: index + 1 };
+  }
+
+  const block = MULTILINE_BLOCKS.find(({ re }) => re.test(line));
+  if (block) {
+    const run = collect(lines, index, (l) => block.re.test(l), (l) => l.replace(block.re, "$1"));
+    return { html: block.render(run.items), next: run.next };
+  }
+
+  // абзац — собираем строки пока не встретим пустую или начало блока
+  const { items, next } = collect(lines, index, isParagraphLine);
+  return { html: `<p>${mdInline(items.join(" "))}</p>`, next };
+}
+
+export function renderMarkdown(source) {
+  if (!source) { return ""; }
+  const lines = String(source).replaceAll(/\r\n?/g, "\n").split("\n");
   const blocks = [];
-  let i = 0;
-
-  while (i < lines.length) {
-    const line = lines[i];
-
-    // пустая строка — пропуск
-    if (!line.trim()) { i++; continue; }
-
-    // заголовки
-    const h = line.match(BLOCK_RE.heading);
-    if (h) {
-      blocks.push(`<h${h[1].length}>${mdInline(h[2])}</h${h[1].length}>`);
-      i++; continue;
+  let index = 0;
+  while (index < lines.length) {
+    if (lines[index].trim()) {
+      const { html, next } = renderBlock(lines, index);
+      blocks.push(html);
+      index = next;
+    } else {
+      index++; // пустая строка — пропуск
     }
-
-    // цитата (одна или несколько подряд)
-    if (BLOCK_RE.quote.test(line)) {
-      const buf = [];
-      while (i < lines.length && BLOCK_RE.quote.test(lines[i])) {
-        buf.push(lines[i].replace(BLOCK_RE.quote, "$1"));
-        i++;
-      }
-      blocks.push(`<blockquote>${mdInline(buf.join(" "))}</blockquote>`);
-      continue;
-    }
-
-    // маркированный список
-    if (BLOCK_RE.ul.test(line)) {
-      const buf = [];
-      while (i < lines.length && BLOCK_RE.ul.test(lines[i])) {
-        buf.push(lines[i].replace(BLOCK_RE.ul, "$1"));
-        i++;
-      }
-      blocks.push("<ul>" + buf.map(x => `<li>${mdInline(x)}</li>`).join("") + "</ul>");
-      continue;
-    }
-
-    // нумерованный список
-    if (BLOCK_RE.ol.test(line)) {
-      const buf = [];
-      while (i < lines.length && BLOCK_RE.ol.test(lines[i])) {
-        buf.push(lines[i].replace(BLOCK_RE.ol, "$1"));
-        i++;
-      }
-      blocks.push("<ol>" + buf.map(x => `<li>${mdInline(x)}</li>`).join("") + "</ol>");
-      continue;
-    }
-
-    // абзац — собираем строки пока не встретим пустую или начало блока
-    const buf = [];
-    while (i < lines.length && lines[i].trim() && !isAnyBlockPrefix(lines[i])) {
-      buf.push(lines[i]);
-      i++;
-    }
-    blocks.push(`<p>${mdInline(buf.join(" "))}</p>`);
   }
   return blocks.join("\n");
 }

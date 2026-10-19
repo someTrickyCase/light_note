@@ -30,17 +30,23 @@ export function projectSize(project) {
 	return bytesOfString(JSON.stringify(project));
 }
 
-// Приводим к человекочитаемому виду: 1234567 → "1.2 MB"
-export function formatBytes(n) {
-	if (n < 1024) return `${n} Б`;
-	if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} КБ`;
-	return `${(n / (1024 * 1024)).toFixed(2)} МБ`;
+// Приводим к человекочитаемому виду: 1234567 → "1.18 МБ".
+// t — переводчик (единицы измерения живут в словаре).
+export function formatBytes(n, t) {
+	if (n < 1024) { return `${n} ${t("unit.b")}`; }
+	if (n < 1024 * 1024) { return `${(n / 1024).toFixed(1)} ${t("unit.kb")}`; }
+	return `${(n / (1024 * 1024)).toFixed(2)} ${t("unit.mb")}`;
 }
 
 // Классификация по занятому месту
 export function quotaLevel(usedBytes, budget = QUOTA_BUDGET_BYTES) {
 	const ratio = usedBytes / budget;
-	if (ratio >= ERR_RATIO) return "err";
-	if (ratio >= WARN_RATIO) return "warn";
+	if (ratio >= ERR_RATIO) { return "err"; }
+	if (ratio >= WARN_RATIO) { return "warn"; }
 	return "ok";
+}
+
+// Уровень для всего проекта. Дорого (JSON.stringify с фото) — не вызывать на каждый рендер.
+export function projectQuotaLevel(project) {
+	return quotaLevel(projectSize(project));
 }

@@ -5,18 +5,19 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const dist = path.resolve("dist");
-const indexPath = path.join(dist, "index.html");
-const cssPath = path.join(dist, "light-note.css");
+const distribution = path.resolve("dist");
+const indexPath = path.join(distribution, "index.html");
+const cssPath = path.join(distribution, "light-note.css");
 
 let html = fs.readFileSync(indexPath, "utf8");
 
 // 1) <script type="module" crossorigin src="./light-note.js"></script> → <script defer src="./light-note.js"></script>
-const beforeScript = html.match(/<script[^>]*light-note\.js[^>]*><\/script>/);
-html = html.replace(
-	/<script type="module" crossorigin src="\.\/light-note\.js"><\/script>/,
-	'<script defer src="./light-note.js"></script>',
-);
+const moduleScript = /<script type="module" crossorigin src="\.\/light-note\.js"><\/script>/;
+if (!moduleScript.test(html)) {
+	// Vite поменял формат тега — без замены сборка сломается на file://
+	console.warn("  postbuild: module <script> tag not found, check dist/index.html");
+}
+html = html.replace(moduleScript, '<script defer src="./light-note.js"></script>');
 
 // 2) <link rel="stylesheet" crossorigin href="./light-note.css"> → убираем (CSS уже inline в <style>)
 html = html.replace(/<link rel="stylesheet"[^>]*light-note\.css[^>]*>/, "");

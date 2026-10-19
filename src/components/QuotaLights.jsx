@@ -13,8 +13,8 @@ const DOTS = ["ok", "warn", "err"];
 
 export function QuotaLights({ level, usedBytes, budget = QUOTA_BUDGET_BYTES }) {
 	const { t } = useT();
-	const used = formatBytes(usedBytes);
-	const total = formatBytes(budget);
+	const used = formatBytes(usedBytes, t);
+	const total = formatBytes(budget, t);
 	const ratio = Math.min(100, Math.round((usedBytes / budget) * 100));
 
 	return (

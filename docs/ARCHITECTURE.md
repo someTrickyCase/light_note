@@ -17,8 +17,10 @@ src/
 ├── main.jsx                 # entry: snapshots page CSS into window.__INJECTED_CSS__ (for export), mounts <App>
 ├── App.jsx                  # Shell: Topbar + Editor (left) + Preview (right) + Toaster
 ├── components/              # UI kit, no project knowledge
-│   ├── Button, Chip, Badge, Field, EmptyState, Toast, Toaster
-│   ├── FileDrop.jsx         # drag & drop / picker; compresses images by quota level
+│   ├── Button, Chip, Badge, Field, EmptyState, Toast
+│   ├── Toaster.jsx          # renders the toast queue via useSyncExternalStore
+│   ├── ConfirmButton.jsx    # two-click confirm (used instead of window.confirm)
+│   ├── FileDrop.jsx         # drag & drop / picker; compresses by quota level (getQuotaLevel prop)
 │   ├── GrowTextarea.jsx     # auto-height textarea (forwardRef)
 │   ├── Lightbox.jsx         # image zoom (in-app)
 │   ├── QuotaLights.jsx      # ok / warn / err storage indicator
@@ -31,22 +33,24 @@ src/
 │   ├── DocumentView.jsx     # composes all Doc* sections; used by preview AND export
 │   ├── DocHeader, DocTimes, DocStaff, DocPlots, DocGallery,
 │   ├── DocFixtures, DocCues, DocCommentary, DocFooter
-│   └── markdown.js          # tiny markdown → HTML renderer for commentary
+│   ├── ZoomImage.jsx        # <button class="doc__zoom"> around an image; opens the Lightbox
+│   └── markdown.js          # tiny markdown → HTML renderer for commentary (escapes HTML first)
 ├── state/
 │   ├── model.js             # emptyProject(), uid(), STORAGE_KEY, SCHEMA_VERSION
-│   ├── reducer.js           # projectReducer: the ONLY place project state changes
+│   ├── reducer.js           # projectReducer: table of handlers, the ONLY place project state changes
 │   ├── ProjectProvider.jsx  # context: useProject(), useDispatch(), useProjectLoading()
 │   ├── storage.js           # load (with migrations) / save (localStorage → IDB offload)
 │   └── idb.js               # minimal IndexedDB blob store
 ├── i18n/
 │   ├── dict.js              # DICT + SUPPORTED_LOCALES
+│   ├── translate.js         # makeTranslator(locale) → { t, tn } without React (export, utils)
 │   └── I18nProvider.jsx     # useT() → { t, tn, locale, setLocale }
 ├── utils/
-│   ├── ma2.js               # parseMA2(xml): grandMA2 XML → { cues, fixtures, warnings }
+│   ├── ma2.js               # parseMA2(xml): grandMA2 XML → { cues, fixtures, warnings: [{ code }] }
 │   ├── exportHtml.jsx       # exportDocument(): renderToStaticMarkup → download .html
 │   ├── exportScript.js      # EXPORT_RUNTIME_JS: vanilla JS for gallery + lightbox in export
 │   ├── files.js             # readAsDataURL, compressImage, escapeHtml
-│   ├── storageQuota.js      # size math + quotaLevel() thresholds
+│   ├── storageQuota.js      # size math, quotaLevel() thresholds, projectQuotaLevel()
 │   ├── useQuotaWatch.js     # hook: current quota level, toasts when it gets worse
 │   └── toast.js             # global toast queue: pushToast(), subscribeToToasts()
 └── styles/
@@ -68,7 +72,10 @@ src/
 
 - `editor/*` (input) and `doc/*` (output) are separate React subtrees. Both read the same `project`.
 - `doc/*` is a **pure function of `project`**: no dispatch, no side effects, no browser-only APIs during render. It must render the same way in the preview, in `renderToStaticMarkup` (export), and in print.
-- Interactivity in `doc/*` (gallery buttons, lightbox) must also work in the export, so it's duplicated in plain JS in `utils/exportScript.js`. If you change the gallery or lightbox markup/classes, update `exportScript.js` too.
+- Interactivity in `doc/*` (gallery buttons, lightbox) must also work in the export, so it's duplicated in plain JS in `utils/exportScript.js`. It relies on these classes: `.doc__gallery-wrap`, `.doc__gallery`, `.doc__gallery-btn--prev/--next`, `.doc__photo`, `.doc__zoom` (+ `data-caption`), `.lightbox`, `.lightbox__close`, `.lightbox__img`, `.lightbox__cap`. If you change them, update `exportScript.js` too.
+- `components/*` is a UI kit: it doesn't import `state/`, `editor/`, or `doc/`. Pass data in through props (e.g. `FileDrop` gets `getQuotaLevel`).
+
+These layer rules are enforced by ESLint (`no-restricted-imports` in `eslint.config.js`).
 
 ### 3. Side effects stay at the edges
 
@@ -84,7 +91,7 @@ Defined in `state/model.js#emptyProject`:
 {
   version: 1,
   meta:     { showName, venue, date, ld, director, console, logo },   // logo: dataURL | null
-  times:    { setup, runtime, staff: [{ id, role, qty }] },
+  times:    { installation, focus, runtime, staff: [{ id, role, qty }] },
   plots:    { base, show },                                           // dataURL | null
   photos:   [{ id, src, tag, caption, order }],
   fixtures: [{ id, type, qty, info }],
@@ -124,6 +131,8 @@ When binaries are offloaded, `src` / `plots.*` / `meta.logo` hold a marker `"__i
 | `trigger` | `<Trigger type>`: `Follow`, `Time <data_f>`, other types as-is, default `Go` |
 
 It also collects fixtures from `<CueData><Channel fixture_id attribute_name>`. Cues come back sorted by `num`.
+
+Warnings are codes, not text: `{ code: "empty" | "invalidXml" | "noCues", detail? }`. The UI translates them with `tn("ma2.warn.<code>", detail)`.
 
 ## Print
 

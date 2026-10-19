@@ -3,7 +3,7 @@ import { useT } from "../i18n/I18nProvider.jsx";
 export function DocCues({ project }) {
 	const { t } = useT();
 	const cues = project.cues;
-	if (cues.length === 0) return null;
+	if (cues.length === 0) { return null; }
 	return (
 		<section className="doc__section">
 			<h2 className="doc__h2">{t("doc.section.cues")}</h2>
@@ -11,11 +11,11 @@ export function DocCues({ project }) {
 				<table className="tbl">
 					<thead>
 						<tr>
-							<th style={{ width: 50 }}>{t("cues.col.num")}</th>
-							<th style={{ width: 140 }}>{t("cues.col.name")}</th>
+							<th className="doc__col-num">{t("cues.col.num")}</th>
+							<th className="doc__col-name">{t("cues.col.name")}</th>
 							<th>{t("cues.col.info")}</th>
-							<th style={{ width: 200 }}>{t("cues.col.cmd")}</th>
-							<th style={{ width: 90 }}>{t("cues.col.trigger")}</th>
+							<th className="doc__col-cmd">{t("cues.col.cmd")}</th>
+							<th className="doc__col-trigger">{t("cues.col.trigger")}</th>
 						</tr>
 					</thead>
 					<tbody>

@@ -3,42 +3,47 @@ import { useDispatch, useProject } from "../state/ProjectProvider.jsx";
 import { Button } from "../components/Button.jsx";
 import { FileDrop } from "../components/FileDrop.jsx";
 import { readAsDataURL } from "../utils/files.js";
+import { projectQuotaLevel } from "../utils/storageQuota.js";
 
 function PlotUploader({ which, label, help }) {
+  const { t } = useT();
   const p = useProject();
   const d = useDispatch();
-  const src = p.plots[which];
+  const source = p.plots[which];
   return (
-    <div>
-      <div className="editor__title" style={{ marginBottom: 8 }}>{label}</div>
-      {src ? (
-        <div className="doc__plot" style={{ marginBottom: 8 }}>
-          <img src={src} alt={label} />
+    <div className="plot-uploader">
+      <div className="editor__title">{label}</div>
+      {source ? (
+        <div className="doc__plot">
+          <img src={source} alt={label} />
           <div className="doc__plot-cap">{label}</div>
         </div>
       ) : (
-        <div style={{ marginBottom: 8 }}>
-          <FileDrop onFiles={(items) => { if (items[0]) d({ type: "PLOT_SET", which, dataURL: items[0].src }); }} multiple={false} hint={help} />
-        </div>
+        <FileDrop
+          onFiles={(items) => { if (items[0]) { d({ type: "PLOT_SET", which, dataURL: items[0].src }); } }}
+          getQuotaLevel={() => projectQuotaLevel(p)}
+          multiple={false}
+          hint={help}
+        />
       )}
-      {src && (
-        <div style={{ display: "flex", gap: 8 }}>
+      {source ? (
+        <div className="editor__actions">
           <label className="btn btn--ghost btn--sm">
-            Заменить
+            {t("plots.replace")}
             <input
-              type="file" accept="image/*" style={{ display: "none" }}
-              onChange={async (e) => {
-                const f = e.target.files[0];
-                if (!f) return;
-                d({ type: "PLOT_SET", which, dataURL: await readAsDataURL(f) });
+              type="file" accept="image/*" hidden
+              onChange={async (event) => {
+                const file = event.target.files[0];
+                if (!file) { return; }
+                d({ type: "PLOT_SET", which, dataURL: await readAsDataURL(file) });
               }}
             />
           </label>
           <Button size="sm" variant="danger" onClick={() => d({ type: "PLOT_CLEAR", which })}>
-            Удалить
+            {t("plots.clear")}
           </Button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

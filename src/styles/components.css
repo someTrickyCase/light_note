@@ -229,3 +229,8 @@
 .md-toolbar__btn:hover { background: var(--c-surface); color: var(--c-ink); border-color: var(--c-line); }
 .md-toolbar__sep { width: 1px; background: var(--c-line); margin: 4px 4px; }
 .md-textarea--with-toolbar { border-top-left-radius: 0; border-top-right-radius: 0; }
+
+/* ---- мелкие модификаторы ---- */
+.drop__hint { margin-top: var(--s-1); }
+.field__hint--top { margin-top: var(--s-2); }
+button.chip { font-family: var(--ff-mono); }

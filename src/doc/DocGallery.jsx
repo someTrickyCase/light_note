@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useT } from "../i18n/I18nProvider.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
+import { ZoomImage } from "./ZoomImage.jsx";
 
 export function DocGallery({ project }) {
   const { t } = useT();
@@ -8,14 +9,14 @@ export function DocGallery({ project }) {
   const ref = useRef(null);
   const [zoom, setZoom] = useState(null);
 
-  const scroll = (dir) => {
-    const el = ref.current;
-    if (!el) return;
-    const w = el.clientWidth || 600;
-    el.scrollBy({ left: dir * w, behavior: "smooth" });
+  const scroll = (direction) => {
+    const element = ref.current;
+    if (!element) { return; }
+    const width = element.clientWidth || 600;
+    element.scrollBy({ left: direction * width, behavior: "smooth" });
   };
 
-  if (photos.length === 0) return null;
+  if (photos.length === 0) { return null; }
   return (
     <section className="doc__section">
       <h2 className="doc__h2">{t("doc.section.gallery")}</h2>
@@ -23,22 +24,18 @@ export function DocGallery({ project }) {
         {photos.length > 1 && (
           <>
             <button type="button" className="doc__gallery-btn doc__gallery-btn--prev"
-                    aria-label="Предыдущее фото" onClick={() => scroll(-1)}>‹</button>
+                    aria-label={t("gallery.prev")} onClick={() => scroll(-1)}>‹</button>
             <button type="button" className="doc__gallery-btn doc__gallery-btn--next"
-                    aria-label="Следующее фото" onClick={() => scroll(1)}>›</button>
+                    aria-label={t("gallery.next")} onClick={() => scroll(1)}>›</button>
           </>
         )}
         <div className="doc__gallery" ref={ref}>
-          {photos.map((p) => (
-            <figure key={p.id} className="doc__photo">
-              <img
-                src={p.src} alt={p.tag || ""}
-                onClick={() => setZoom({ src: p.src, caption: p.tag || "" })}
-                style={{ cursor: "zoom-in" }}
-              />
+          {photos.map((photo) => (
+            <figure key={photo.id} className="doc__photo">
+              <ZoomImage src={photo.src} alt={photo.tag || ""} caption={photo.tag || ""} onZoom={setZoom} />
               <figcaption className="doc__photo-meta">
-                {p.tag && <div className="doc__photo-tag">{p.tag}</div>}
-                {p.caption && <div>{p.caption}</div>}
+                {photo.tag ? <div className="doc__photo-tag">{photo.tag}</div> : null}
+                {photo.caption ? <div>{photo.caption}</div> : null}
               </figcaption>
             </figure>
           ))}
