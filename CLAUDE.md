@@ -27,6 +27,12 @@ npm run lint      # strict ESLint (eslint.config.js): every rule is an error
 1. `npm run lint` and `npm run build` pass. Don't silence a rule with `eslint-disable` without a comment explaining why.
 2. For UI changes: check the preview, print, and an exported HTML opened from `file://`.
 3. Docs in `docs/` still match the code. Update them in the same commit.
+4. There are no automated tests yet. For refactors, compare old vs new behavior on the same inputs, and test DOM/XML code in a **real browser** (not linkedom/jsdom).
+
+## Lint gotchas
+
+- `eslint --fix` is not always safe: `unicorn/prefer-https` rewrote the MA2 XML namespace URI (broke import), and `prefer-arrow-callback` turned named `forwardRef(function X…)` into anonymous arrows. Review autofix diffs.
+- Effects that return a cleanup only sometimes trip `consistent-return`. Always return a cleanup instead.
 
 ## Git
 
@@ -38,5 +44,6 @@ Commits follow Conventional Commits: `feat(cues): ...`. Scopes and full rules ar
 - `docs/ARCHITECTURE.md`: code map, data model, storage/export flows, MA2 import, recipe to add a section
 - `docs/TOKENS.md`: design tokens
 - `docs/I18N.md`: dictionary and how to add a language
+- `docs/KNOWN_ISSUES.md`: known bugs and backlog. Check it before fixing "new" bugs; update it when you fix or find one
 
 Code comments are in Russian; docs are in English.

@@ -16,6 +16,7 @@ Single static HTML file as output — no backend, no CDN, no external resources 
 - **Autosave** — localStorage with adaptive compression and transparent overflow handling
 - **Adaptive layout** — desktop and mobile (≤600px), tablet (≤900px)
 - **Print styles** — A4 portrait, each section on a new page
+- **Accessible** — images, chips, and drop zones work with the keyboard; destructive actions use a two-click confirm
 - **i18n** — Russian only for now, dictionary isolated in `src/i18n/dict.js`, ready for additional locales
 
 ## Tech stack
@@ -191,4 +192,5 @@ git push origin v0.3.0
 - `docs/ARCHITECTURE.md` — code map, how to add a section, how to add a language
 - `docs/TOKENS.md` — design tokens
 - `docs/I18N.md` — translation dictionary
+- `docs/KNOWN_ISSUES.md` — known bugs, cleanup backlog, testing status
 
