@@ -9,11 +9,10 @@ import {
 import { storage } from "./state/storage.js";
 import { pushToast } from "./utils/toast.js";
 import { exportDocument } from "./utils/exportHtml.jsx";
-import { useQuotaWatch } from "./utils/useQuotaWatch.js";
+import { useSpaceWarning } from "./utils/useSpaceWarning.js";
 
 import { Button } from "./components/Button.jsx";
 import { ConfirmButton } from "./components/ConfirmButton.jsx";
-import { QuotaLights } from "./components/QuotaLights.jsx";
 import { Toaster } from "./components/Toaster.jsx";
 
 import { MetaSection } from "./editor/MetaSection.jsx";
@@ -90,7 +89,7 @@ function Preview() {
 	const { t, tn } = useT();
 	const p = useProject();
 	const loading = useProjectLoading();
-	const { level, usedBytes, quotaBytes } = useQuotaWatch(p, t);
+	useSpaceWarning(p, t, tn);
 	if (!p || loading) {
 		return (
 			<main className="preview-wrap">
@@ -102,7 +101,6 @@ function Preview() {
 		<main className="preview-wrap">
 			<div className="preview-frame">
 				<div className="preview-frame__bar">
-					<QuotaLights level={level} usedBytes={usedBytes} quotaBytes={quotaBytes} />
 					<span className="u">{tn("app.frame.title", p.meta.showName)}</span>
 				</div>
 				<DocumentView project={p} />

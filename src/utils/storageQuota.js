@@ -1,20 +1,14 @@
 // =====================================================================
-// UTILS · ЗАНЯТОЕ МЕСТО В БРАУЗЕРЕ
+// UTILS · МЕСТО В БРАУЗЕРЕ
 // =====================================================================
 //
-// Проект и картинки живут в IndexedDB. Лимит задаёт браузер (обычно это
-// доля свободного места на диске — сотни МБ и больше), точные цифры
-// отдаёт navigator.storage.estimate() (см. storage.estimate()).
-// Классифицируем занятость в три уровня: ok / warn / err.
+// Проект и картинки живут в IndexedDB — обычные файлы в профиле браузера
+// на диске. Браузер не резервирует место заранее, а называет потолок
+// (quota, обычно доля диска), сколько этому сайту можно занять.
+// navigator.storage.estimate() (см. storage.estimate()) отдаёт занятое и потолок.
+// Предупреждаем, когда до потолка осталось меньше LOW_SPACE_BYTES.
 
-export const WARN_RATIO = 0.6;
-export const ERR_RATIO = 0.85;
-
-export const QUOTA_LEVELS = {
-	ok:   { tone: "ok",   order: 0 },
-	warn: { tone: "warn", order: 1 },
-	err:  { tone: "err",  order: 2 },
-};
+export const LOW_SPACE_BYTES = 1024 ** 3; // 1 ГБ
 
 // Приводим к человекочитаемому виду: 1234567 → "1.18 МБ".
 // t — переводчик (единицы измерения живут в словаре).
@@ -25,11 +19,14 @@ export function formatBytes(n, t) {
 	return `${(n / (1024 * 1024 * 1024)).toFixed(2)} ${t("unit.gb")}`;
 }
 
-// Классификация по занятому месту. quotaBytes = 0 — браузер не знает лимит → ok.
-export function quotaLevel(usedBytes, quotaBytes) {
-	if (!quotaBytes) { return "ok"; }
-	const ratio = usedBytes / quotaBytes;
-	if (ratio >= ERR_RATIO) { return "err"; }
-	if (ratio >= WARN_RATIO) { return "warn"; }
-	return "ok";
+// Сколько ещё можно занять. quotaBytes = 0 — браузер не знает лимит → null.
+export function freeBytes(usedBytes, quotaBytes) {
+	if (!quotaBytes) { return null; }
+	return Math.max(0, quotaBytes - usedBytes);
+}
+
+// Места мало: до потолка меньше 1 ГБ. Неизвестный лимит — не пугаем.
+export function isSpaceLow(usedBytes, quotaBytes) {
+	const free = freeBytes(usedBytes, quotaBytes);
+	return free !== null && free < LOW_SPACE_BYTES;
 }
