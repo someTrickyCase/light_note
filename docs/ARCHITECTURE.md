@@ -4,7 +4,7 @@
 
 These shape every decision in the codebase. Breaking one breaks the product.
 
-1. **Works from `file://`, fully offline.** No CDN, no web fonts, no network at runtime.
+1. **Works from `file://`, fully offline.** No CDN, no network at runtime. Fonts are bundled (`src/fonts/`, inlined by the build).
    - That is why the build is a single **IIFE** bundle, not ES modules: Chrome/Brave block module imports on `file://`.
    - That is why all CSS is inlined into `<style>` (see `inlineCssPlugin` in `vite.config.js` and `scripts/postbuild.js`).
 2. **The exported document is one self-contained `.html` file**: inlined CSS, base64 images, and a small vanilla-JS runtime. No React in the export.
@@ -16,7 +16,7 @@ These shape every decision in the codebase. Breaking one breaks the product.
 src/
 ├── main.jsx                 # entry: snapshots page CSS into window.__INJECTED_CSS__ (for export), mounts <App>
 ├── App.jsx                  # Shell: Topbar + Editor (left) + Preview (right) + Toaster
-├── Topbar.jsx               # one "Меню" (import: new / open HTML · export: download / print · theme · font), replace dialog, drop .html on the window
+├── Topbar.jsx               # one "Меню" (import: new / open HTML · export: download / print · theme · font · language), replace dialog, drop .html on the window
 ├── components/              # UI kit, no project knowledge
 │   ├── Button, Chip, Badge, Field, EmptyState, Toast
 │   ├── Toaster.jsx          # renders the toast queue via useSyncExternalStore
@@ -44,9 +44,10 @@ src/
 │   ├── storage.js           # createStorage(): load (migrations, one-time localStorage → IDB move) / save (queued, IDB only); `storage` = the app instance
 │   └── idb.js               # minimal IndexedDB wrapper: "project" + "blobs" stores
 ├── i18n/
-│   ├── dict.js              # DICT + SUPPORTED_LOCALES
+│   ├── dict.js              # DICT, SUPPORTED_LOCALES (ru = default), LOCALE_NAMES
+│   ├── locales/             # ru.js, en.js — the phrases, one file per language
 │   ├── translate.js         # makeTranslator(locale) → { t, tn } without React (export, utils)
-│   └── I18nProvider.jsx     # useT() → { t, tn, locale, setLocale }
+│   └── I18nProvider.jsx     # useT() → { t, tn, locale, setLocale }; sets <html lang> and the tab title
 ├── utils/
 │   ├── ma2.js               # parseMA2(xml): grandMA2 XML → { cues, fixtures, warnings: [{ code }] }
 │   ├── exportHtml.jsx       # renderExportHTML(project) → Promise<string>; exportDocument() downloads it
@@ -86,7 +87,7 @@ These layer rules are enforced by ESLint (`no-restricted-imports` in `eslint.con
 
 ### 3. Side effects stay at the edges
 
-- IndexedDB: only in `state/storage.js` and `state/idb.js`. localStorage: only the locale key in `I18nProvider.jsx` (and the one-time legacy read in `storage.js`).
+- IndexedDB: only in `state/storage.js` and `state/idb.js`. localStorage: only UI settings — locale in `I18nProvider.jsx`, theme and font in `utils/appearance.js` (and the one-time legacy read in `storage.js`).
 - File reading and image size: `utils/files.js`. Images are **never** compressed or converted.
 - Notifications: `utils/toast.js` (a global queue, callable outside React).
 
@@ -166,17 +167,21 @@ Warnings are codes, not text: `{ code: "empty" | "invalidXml" | "noCues", detail
 
 ## Print
 
-All print rules live in `src/styles/print.css`. A4 portrait, 14mm margins, page break before each `.doc__section`. Print is always light and in the standard font: theme and font rules live inside `@media screen`.
+All print rules live in `src/styles/print.css`. A4 portrait, 14mm margins, page break before each `.doc__section`. Print is always light (theme rules live inside `@media screen`) and uses the chosen font.
 
 ## Theme
 
-Five themes: **Графит** (default), **Полночь**, **Вольфрам** (dark), **Светлая**, **Бумага** (light), and two fonts: **Без засечек** (default) / **С засечками**, chosen in the header "Меню". Only `tokens.css` knows colors and fonts: `:root` = light + sans; `:root[data-theme="…"]` and `:root[data-font="serif"]` inside `@media screen`, so print and export stay light and sans. The dark themes share one base block (graphite), then each overrides its surfaces, text and accent. `utils/appearance.js` sets `<html data-theme data-font>` and saves a choice (`tld.theme.v1`, `tld.font.v1`) only when the user picks one; an old saved `"dark"` reads as graphite. A script in `index.html` `<head>` sets both before the first paint. Details and role tokens: `docs/TOKENS.md` → Themes.
+Five themes: **Графит** (default), **Полночь**, **Вольфрам** (dark), **Светлая**, **Бумага** (light), and two fonts: **Без засечек** (default, Arimo) / **С засечками** (Old Standard TT), chosen in the header "Меню". Only `tokens.css` knows colors and fonts: `:root` = light + sans; `:root[data-theme="…"]` blocks sit inside `@media screen`, so print and export stay light; `:root[data-font="serif"]` sits outside, and the export gets the same `data-font`, so both follow the font. The dark themes share one base block (graphite), then each overrides its surfaces, text and accent. `utils/appearance.js` sets `<html data-theme data-font>` and saves a choice (`tld.theme.v1`, `tld.font.v1`) only when the user picks one; an old saved `"dark"` reads as graphite. A script in `index.html` `<head>` sets theme, font and `lang` before the first paint. Details and role tokens: `docs/TOKENS.md` → Themes.
+
+## Language
+
+Russian (default) and English, switched in "Меню" → Язык / Language; the names are always written in their own language. Phrases live in `i18n/locales/<lang>.js`. The choice is saved (`tld.locale.v1`) only when the user picks one. `I18nProvider` sets `<html lang>` and the tab title. The export is rendered in the current language (`renderExportHTML(project, { locale, font })`, called from `Topbar`), so a document made in English reads in English; opening it again works in either language. Dates from `<input type="date">` are shown with `utils/formatDate.js` (`Intl`, offline). Details: `docs/I18N.md`.
 
 ## Recipe: add a new document section
 
 1. **Data:** add the field to `state/model.js#emptyProject`. If old saved projects need it, add a default in `storage.load`.
 2. **Mutations:** add action types to `state/reducer.js`.
-3. **Strings:** add keys to `i18n/dict.js` (every locale).
+3. **Strings:** add keys to every file in `i18n/locales/` (`tests/i18n.test.jsx` fails if a language misses one).
 4. **Editor:** create `editor/MySection.jsx` and add it to `<Editor>` in `App.jsx`.
 5. **Document:** create `doc/DocMySection.jsx` (pure!) and add it to `<DocumentView>`.
 6. **Check:** preview, print, and the exported HTML. Storage and export pick up the new data automatically, as long as it is in `project`.
@@ -195,7 +200,9 @@ See `docs/I18N.md`.
 - Images are stored as is: no compression, PNG stays PNG; photos store their pixel size
 - Storage indicator removed (the three quota dots); instead a sticky toast warns when less than 1 GB is left
 - Themes: Графит (default, dark), Полночь, Вольфрам, Светлая, Бумага; font: sans / serif. Whole app incl. preview follows; export and print stay white and sans. All raw colors moved into tokens (role tokens like `--c-strong`, `--c-on-accent`)
-- Header: one "Меню" with groups Импорт (new, open HTML) / Экспорт (download HTML, print) / Тема / Шрифт, text only; choices keep the menu open for live comparison
+- Header: one "Меню" with groups Импорт (new, open HTML) / Экспорт (download HTML, print) / Тема / Шрифт / Язык, text only; choices keep the menu open for live comparison
+- English: full translation, switch in the menu (Russian stays the default); the export is written in the current language, the premiere date is formatted for it
+- Fonts bundled offline: Arimo (text), Oswald (headings), Yeseva One (show title), Old Standard TT (serif text); the export and print follow the chosen font
 - Exported HTML can be opened and edited again: the project rides inside the file (images not duplicated); open from the header menu or drop an .html on the window; a dialog offers to download the current project before replacing it
 
 ### v0.3.0 (2026-08-15)
