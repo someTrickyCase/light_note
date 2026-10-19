@@ -6,7 +6,24 @@
 			name="viewport"
 			content="width=device-width, initial-scale=1, viewport-fit=cover"
 		/>
-		<meta name="color-scheme" content="light" />
+		<meta name="color-scheme" content="dark light" />
+		<!-- Тема и шрифт до первой отрисовки, без вспышки. Ключи, списки, умолчания — как в src/utils/appearance.js -->
+		<script>
+			(function () {
+				function pick(key, values, fallback) {
+					try {
+						var value = localStorage.getItem(key);
+						if (value === "dark") value = "graphite";
+						return values.indexOf(value) >= 0 ? value : fallback;
+					} catch (error) {
+						return fallback;
+					}
+				}
+				var root = document.documentElement;
+				root.dataset.theme = pick("tld.theme.v1", ["graphite", "midnight", "tungsten", "light", "paper"], "graphite");
+				root.dataset.font = pick("tld.font.v1", ["sans", "serif"], "sans");
+			})();
+		</script>
 		<title>Light Note · редактор технической документации шоу</title>
 		<meta
 			name="description"

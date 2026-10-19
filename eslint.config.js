@@ -153,7 +153,7 @@ export default [
 			// Проектное правило: в inline-стилях только токены.
 			"no-restricted-syntax": ["error", ...RESTRICTED_SYNTAX],
 
-			// Проектное правило: хранилища браузера — только в state/ (и локаль в I18nProvider).
+			// Проектное правило: хранилища браузера — только в state/ (и настройки UI: локаль в I18nProvider, тема и шрифт в utils/appearance.js).
 			"no-restricted-globals": [
 				"error",
 				{ name: "localStorage", message: "Only src/state/storage.js may touch localStorage." },
@@ -173,9 +173,9 @@ export default [
 		},
 	},
 
-	// state/ и I18nProvider владеют хранилищами браузера
+	// state/, I18nProvider и appearance.js владеют хранилищами браузера
 	{
-		files: ["src/state/storage.js", "src/state/idb.js", "src/i18n/I18nProvider.jsx"],
+		files: ["src/state/storage.js", "src/state/idb.js", "src/i18n/I18nProvider.jsx", "src/utils/appearance.js"],
 		rules: { "no-restricted-globals": "off" },
 	},
 

@@ -10,11 +10,22 @@ export const DICT = {
 	ru: {
 		"app.name": "Light Note",
 		"app.tagline": "редактор технической документации шоу",
-		"app.actions.export": "Скачать HTML",
 		"app.status.saved": "Сохранено локально",
 		"app.status.unsaved": "Не сохранено",
 
-		"menu.file": "Файл",
+		"menu.main": "Меню",
+		"menu.import": "Импорт",
+		"menu.exportGroup": "Экспорт",
+		"menu.theme": "Тема",
+		"menu.font": "Шрифт",
+		"appearance.theme.graphite": "Графит",
+		"appearance.theme.midnight": "Полночь",
+		"appearance.theme.tungsten": "Вольфрам",
+		"appearance.theme.light": "Светлая",
+		"appearance.theme.paper": "Бумага",
+		"appearance.font.sans": "Без засечек",
+		"appearance.font.serif": "С засечками",
+
 		"menu.new": "Новый проект",
 		"menu.open": "Открыть HTML…",
 		"menu.export": "Скачать HTML",
@@ -97,9 +108,9 @@ export const DICT = {
 			"при указанном кол-ве персонала и соотвествию развеса, необходимому для на шоу",
 		"plots.base": "Базовый развес площадки",
 		"plots.base.help":
-			"Capture · JPG · плoт пустой сцены для понимания геометрии",
+			"Capture · JPG · Стационарный развес площадки (без довешиваемого оборудования)",
 		"plots.show": "Развес спектакля",
-		"plots.show.help": "Capture · JPG · размеченный плoт с расстановкой",
+		"plots.show.help": "Capture · JPG · Развес, необходимый для шоу",
 		"plots.replace": "Заменить",
 		"plots.clear": "Удалить",
 

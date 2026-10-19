@@ -4,12 +4,12 @@
    ===================================================================== */
 
 @media print {
-  :root { --c-page: #fff; }
-  body { background: #fff; }
+  :root { --c-page: var(--c-surface); }
+  body { background: var(--c-surface); }
   .topbar, .editor, .preview-frame__bar, .toaster,
   .lightbox { display: none !important; }
 
-  .preview-wrap { padding: 0; max-height: none; overflow: visible; background: #fff; }
+  .preview-wrap { padding: 0; max-height: none; overflow: visible; background: var(--c-surface); }
   .preview-frame { border: none; box-shadow: none; border-radius: 0; max-width: none; }
   .doc { padding: 0; }
 

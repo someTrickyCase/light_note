@@ -2,6 +2,13 @@
    DESIGN TOKENS
    Единственное место, где заданы цвета, шрифты, отступы, радиусы.
    Чтобы сменить брендинг — править ТОЛЬКО этот файл.
+
+   Темы (utils/appearance.js): :root — светлая (её же видят экспорт и печать).
+   Остальные — блоки :root[data-theme="…"] внизу, внутри @media screen: при
+   печати их нет, а в экспорте нет атрибута data-theme — поэтому экспорт и
+   печать всегда светлые. Так же шрифт: :root[data-font="serif"].
+   Компоненты берут цвета по РОЛИ (--c-strong, --c-chrome, --c-on-accent…),
+   а не по названию цвета — тогда тема меняет только этот файл.
    ===================================================================== */
 
 :root {
@@ -17,11 +24,33 @@
 	--c-surface: #ffffff;
 	--c-line: #e2e7ec;
 	--c-line-2: #eef1f4;
+	--c-surface-2: #fafbfc; /* мягкие карточки, пустые состояния, зоны загрузки */
+	--c-drop-h: #f5f9fc; /* зона загрузки под курсором */
+	--c-placeholder: #a9b1bb;
+	--c-focus-ring: rgba(46, 65, 83, 0.12);
+	--c-err-ring: rgba(192, 54, 44, 0.1);
+
+	/* сильная заливка: выбранный чип, номер раздела, тёмная кнопка */
+	--c-strong: var(--c-graphite);
+	--c-strong-2: var(--c-graphite-2);
+	--c-on-strong: #ffffff;
+
+	/* верхняя панель: тёмная в обеих темах */
+	--c-chrome: var(--c-graphite);
+	--c-chrome-ink: #aeb6c0;
+	--c-chrome-meta: #cdd3da;
+	--c-chrome-strong: #ffffff;
+	--c-chrome-line: rgba(255, 255, 255, 0.14);
+
+	/* подложка логотипа: в тёмной теме — светлая, чтобы тёмный логотип не пропал */
+	--c-logo-bg: #ffffff;
+	--logo-pad: 0;
 
 	/* ---- color · brand ---- */
 	--c-accent: #c490d1;
 	--c-accent-d: #564d65;
 	--c-accent-t: #fbede4;
+	--c-on-accent: #ffffff;
 
 	/* ---- color · status ---- */
 	--c-green: #1f8a4c;
@@ -42,6 +71,13 @@
 	--c-info: #2e4153;
 	--c-info-bg: #eef3f8;
 	--c-info-bd: #c9d6e2;
+	/* текст на цветных плашках (toast) и значок на статусном цвете */
+	--c-green-ink: #0f5c33;
+	--c-amber-ink: #7a4a08;
+	--c-err-ink: #8f261e;
+	--c-info-ink: #274056;
+	--c-green-bg-h: #dbeee3;
+	--c-on-status: #ffffff;
 
 	/* ---- typography ---- */
 	/* В офлайне шрифты системные, чтобы не тянуть ничего из сети. */
@@ -110,4 +146,150 @@
 	--container: 1280px;
 	--header-h: 60px;
 	--side-w: 420px;
+}
+
+/* ---- темы и шрифт (utils/appearance.js) ----
+   Только для экрана: печать и экспорт остаются светлыми и со стандартным шрифтом.
+   Тёмные темы делят общую основу (графит), потом каждая меняет свои поверхности,
+   текст и акцент. Одинаковая специфичность — побеждает блок ниже. */
+@media screen {
+	/* основа тёмных тем = «Графит» (по умолчанию) */
+	:root[data-theme="graphite"],
+	:root[data-theme="midnight"],
+	:root[data-theme="tungsten"] {
+		color-scheme: dark; /* системные элементы (date, скроллбары, select) — тоже тёмные */
+
+		--c-page: #121114;
+		--c-surface: #1b1a1e;
+		--c-surface-2: #201f24;
+		--c-line: #322f37;
+		--c-line-2: #26242a;
+		--c-ink: #ebe8ef;
+		--c-ink-2: #b9b4c1;
+		--c-soft: #8d8796;
+		--c-steel: #8fb0cf;
+		--c-steel-2: #a9c3dc;
+		--c-drop-h: #1e2430;
+		--c-placeholder: #6f6a78;
+		--c-focus-ring: rgba(143, 176, 207, 0.28);
+		--c-err-ring: rgba(240, 114, 106, 0.22);
+
+		--c-strong: #ebe8ef;
+		--c-strong-2: #d4d0da;
+		--c-on-strong: #121114;
+
+		--c-chrome: #0b0a0d;
+
+		--c-accent-d: #d9b3e3; /* hover основной кнопки — светлее, а не темнее */
+		--c-accent-t: #2a2130;
+		--c-on-accent: #1a141d;
+		--c-logo-bg: #f4f2f6;
+		--logo-pad: 4px 8px;
+
+		--c-green: #4cc47f;
+		--c-green-bg: #14281c;
+		--c-green-bd: #26533a;
+		--c-green-bg-h: #1a3424;
+		--c-green-ink: #a3e2bc;
+		--c-amber: #e3a03c;
+		--c-amber-bg: #2b2112;
+		--c-amber-bd: #5a4320;
+		--c-amber-ink: #f1cb8f;
+		--c-greyst: #9ba5b3;
+		--c-grey-bg: #24262b;
+		--c-grey-bd: #3b4047;
+		--c-reg: #e8913f;
+		--c-reg-bg: #2c1f12;
+		--c-reg-bd: #5c3d1f;
+		--c-err: #f0726a;
+		--c-err-bg: #2e1615;
+		--c-err-bd: #5e2a27;
+		--c-err-ink: #f6b0aa;
+		--c-info: #9cb7d1;
+		--c-info-bg: #172130;
+		--c-info-bd: #2f4459;
+		--c-info-ink: #c3d5e6;
+		--c-on-status: #121114;
+
+		--sh-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+		--sh-2: 0 4px 14px rgba(0, 0, 0, 0.45);
+		--sh-3: 0 18px 50px rgba(0, 0, 0, 0.55);
+		--sh-accent: 0 6px 16px rgba(196, 144, 209, 0.18);
+	}
+
+	/* «Полночь»: глубокий ночной синий, холодный акцент */
+	:root[data-theme="midnight"] {
+		--c-page: #0c1220;
+		--c-surface: #131b2b;
+		--c-surface-2: #182237;
+		--c-line: #27334b;
+		--c-line-2: #1b2539;
+		--c-ink: #e6ecf5;
+		--c-ink-2: #b0bccf;
+		--c-soft: #8292ab;
+		--c-placeholder: #627089;
+		--c-drop-h: #17263b;
+		--c-strong: #e6ecf5;
+		--c-strong-2: #c9d3e2;
+		--c-on-strong: #0c1220;
+		--c-chrome: #070b14;
+		--c-accent: #7cc4e8;
+		--c-accent-d: #a8daf2;
+		--c-accent-t: #13283b;
+		--c-on-accent: #07131d;
+		--c-logo-bg: #eef2f8;
+		--sh-accent: 0 6px 16px rgba(124, 196, 232, 0.18);
+	}
+
+	/* «Вольфрам»: тёплый, как лампа накаливания, янтарный акцент */
+	:root[data-theme="tungsten"] {
+		--c-page: #14100c;
+		--c-surface: #1d1813;
+		--c-surface-2: #241e17;
+		--c-line: #3a3127;
+		--c-line-2: #2a231b;
+		--c-ink: #f2e9dd;
+		--c-ink-2: #c9baa7;
+		--c-soft: #9b8b78;
+		--c-placeholder: #786a5a;
+		--c-drop-h: #2a2116;
+		--c-steel: #d2b48e;
+		--c-steel-2: #e0c7a6;
+		--c-focus-ring: rgba(232, 167, 90, 0.28);
+		--c-strong: #f2e9dd;
+		--c-strong-2: #dccfbd;
+		--c-on-strong: #14100c;
+		--c-chrome: #0d0a07;
+		--c-accent: #e8a75a;
+		--c-accent-d: #f1c287;
+		--c-accent-t: #2e2215;
+		--c-on-accent: #1c1207;
+		--c-logo-bg: #f6efe5;
+		--sh-accent: 0 6px 16px rgba(232, 167, 90, 0.18);
+	}
+
+	/* «Бумага»: тёплая светлая, глубокий сливовый акцент (читается и на кремовом) */
+	:root[data-theme="paper"] {
+		--c-page: #ede6da;
+		--c-surface: #fbf8f2;
+		--c-surface-2: #f6f1e8;
+		--c-line: #e1d7c7;
+		--c-line-2: #ebe3d6;
+		--c-ink: #2a241c;
+		--c-ink-2: #574d41;
+		--c-soft: #7f7466;
+		--c-placeholder: #a59a8b;
+		--c-drop-h: #f3ecdf;
+		--c-accent: #84479a;
+		--c-accent-d: #6a3a7c;
+		--c-accent-t: #f3e6f5;
+		--c-on-accent: #ffffff;
+		--sh-accent: 0 6px 16px rgba(132, 71, 154, 0.2);
+	}
+
+	/* шрифт «С засечками»: системные шрифты, офлайн (ничего не скачивается) */
+	:root[data-font="serif"] {
+		--ff-text: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, Cambria, "Times New Roman", serif;
+		--ff-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, Cambria, "Times New Roman", serif;
+	}
 }

@@ -99,6 +99,34 @@ describe("Menu", () => {
 		await run(() => { document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true })); });
 		expect(list()).toBeNull();
 	});
+
+	it("headings are labels (not focusable); choices are radios that keep the menu open", async () => {
+		const picked = [];
+		const items = [
+			{ heading: "Theme", id: "h" },
+			{ label: "Dark", checked: true, onSelect: () => picked.push("dark") },
+			{ label: "Light", checked: false, onSelect: () => picked.push("light") },
+			{ label: "Act", onSelect: () => picked.push("act") },
+		];
+		const { container } = render(<Menu label="Menu" items={items} />);
+		await run(() => container.querySelector(".menu__button").click());
+		const heading = container.querySelector(".menu__heading");
+		expect(heading.textContent).toBe("Theme");
+		expect(heading.getAttribute("role")).toBe("presentation");
+		const radios = [...container.querySelectorAll("[role=menuitemradio]")];
+		expect(radios.map((radio) => [radio.textContent, radio.getAttribute("aria-checked"), radio.classList.contains("is-checked")]))
+			.toEqual([["Dark", "true", true], ["Light", "false", false]]);
+		expect(container.querySelector("[role=menuitem]").hasAttribute("aria-checked")).toBe(false);
+		expect(document.activeElement.textContent).toBe("Dark"); // заголовок пропущен
+		await keydown(container.querySelector("[role=menu]"), "ArrowUp");
+		expect(document.activeElement.textContent).toBe("Act"); // по кругу, тоже мимо заголовка
+		await run(() => radios[1].click());
+		expect(picked).toEqual(["light"]);
+		expect(container.querySelector("[role=menu]")).not.toBeNull(); // выбор не закрывает
+		await run(() => container.querySelector("[role=menuitem]").click());
+		expect(picked).toEqual(["light", "act"]);
+		expect(container.querySelector("[role=menu]")).toBeNull(); // действие закрывает
+	});
 });
 
 describe("ChoiceDialog", () => {
@@ -258,16 +286,25 @@ describe("Topbar: open / new / export", () => {
 	const exported = async (project, name = "show.html") => new File([await renderExportHTML(project)], name, { type: "text/html" });
 	const toasts = () => getToastQueue().map((toast) => ({ tone: toast.tone, msg: toast.msg }));
 
-	it("menu has the file scenarios; the primary button downloads", async () => {
+	it("one menu in the header: import, export, theme, font — text only", async () => {
 		const names = captureDownloads();
 		const { container, menuItem } = await mount(loaded({ meta: { showName: "Гамлет" } }));
-		await run(() => container.querySelector(".menu__button").click());
-		expect([...container.querySelectorAll("[role=menuitem]")].map((item) => item.textContent))
-			.toEqual([t("menu.new"), t("menu.open"), t("menu.export"), t("menu.print")]);
-		await run(() => container.querySelector(".menu__button").click());
-		await run(() => container.querySelector(".btn--primary").click());
+		expect(container.querySelectorAll(".topbar__actions button")).toHaveLength(1);
+		const button = container.querySelector(".menu__button");
+		expect(button.textContent).toBe(t("menu.main"));
+		await run(() => button.click());
+		const rows = [...container.querySelectorAll(".menu__list > *")].map((row) => `${row.getAttribute("role")}:${row.textContent}`);
+		expect(rows).toEqual([
+			`presentation:${t("menu.import")}`, `menuitem:${t("menu.new")}`, `menuitem:${t("menu.open")}`, "separator:",
+			`presentation:${t("menu.exportGroup")}`, `menuitem:${t("menu.export")}`, `menuitem:${t("menu.print")}`, "separator:",
+			`presentation:${t("menu.theme")}`,
+			...["graphite", "midnight", "tungsten", "light", "paper"].map((id) => `menuitemradio:${t(`appearance.theme.${id}`)}`),
+			"separator:", `presentation:${t("menu.font")}`,
+			...["sans", "serif"].map((id) => `menuitemradio:${t(`appearance.font.${id}`)}`),
+		]);
+		await run(() => button.click());
 		await menuItem(t("menu.export"));
-		await waitFor(() => expect(names).toEqual(["Гамлет.html", "Гамлет.html"]));
+		await waitFor(() => expect(names).toEqual(["Гамлет.html"]));
 		const print = vi.spyOn(globalThis, "print").mockImplementation(() => {});
 		await menuItem(t("menu.print"));
 		expect(print).toHaveBeenCalledOnce();
@@ -370,6 +407,14 @@ describe("Topbar: open / new / export", () => {
 		images.items.add(new File(["x"], "a.png", { type: "image/png" }));
 		await run(() => { document.body.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: images })); });
 		expect(toasts().at(-1)).toEqual({ tone: "err", msg: t("open.error.notHtml") });
+	});
+
+	it("a non-HTML file picked via 'Open HTML…' gets the 'not HTML' message, not 'no data'", async () => {
+		const old = loaded({ commentary: "keep me" });
+		const { pick } = await mount(old);
+		await pick(new File(["x"], "photo.png", { type: "image/png" }));
+		expect(toasts()).toEqual([{ tone: "err", msg: t("open.error.notHtml") }]);
+		expect(current).toEqual(old);
 	});
 
 	it("the same file can be picked twice in a row (input is reset)", async () => {

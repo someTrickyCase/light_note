@@ -4,6 +4,25 @@ All raw colors, fonts, font sizes, spacing, radii, shadows, and timings live in 
 
 To change the palette or branding, edit **only that file**. Component styles must reference tokens with `var(--token)`.
 
+## Themes
+
+- `:root` is the **light** theme (+ the sans font). Other themes are `:root[data-theme="…"]` blocks at the end of `tokens.css`: **graphite** (Графит, the app default), **midnight** (Полночь), **tungsten** (Вольфрам) — dark; **paper** (Бумага) — light; `light` (Светлая) has no block, it is `:root`. The three dark themes share one base block (graphite), then each overrides its surfaces, text and accent (same specificity, the later block wins). Dark ones set `color-scheme: dark` (native date pickers, selects and scrollbars follow). The font: `:root[data-font="serif"]` swaps `--ff-text` / `--ff-display` for system serif fonts (offline, nothing is downloaded); mono stays.
+- All theme and font blocks sit inside `@media screen`. So **print is always light and sans**, and so is the **export** (its `<html>` has no `data-theme` / `data-font`, even though it carries the same CSS).
+- `<html data-theme data-font>` is set by `utils/appearance.js` (header "Меню" → Тема / Шрифт, saved in `localStorage` as `tld.theme.v1` / `tld.font.v1`) and, before the first paint, by a tiny script in `index.html` `<head>` (no flash). Keep their keys, lists and defaults in sync; `tests/appearance.test.jsx` runs the head script. **Add a theme:** a block in `tokens.css`, its id in `THEMES` (`appearance.js`) and in the head script, a name `appearance.theme.<id>` in `dict.js`.
+- **Use tokens by role, not by color.** A component that wants "a strong fill" asks for `--c-strong`, not `--c-graphite`: in the dark theme the strong fill is light. Role tokens:
+
+| Token | Role | Light | Dark |
+|---|---|---|---|
+| `--c-strong` / `--c-strong-2` / `--c-on-strong` | selected chip, section number, `.btn--dark`, table header line | graphite / white text | near-white / dark text |
+| `--c-chrome`, `--c-chrome-ink`, `--c-chrome-meta`, `--c-chrome-strong`, `--c-chrome-line` | top bar (dark in both themes) | graphite | almost black |
+| `--c-on-accent` | text on the accent (primary button) | white | dark |
+| `--c-on-status` | icon on a status color (toast) | white | dark |
+| `--c-green-ink`, `--c-amber-ink`, `--c-err-ink`, `--c-info-ink` | text on a status background (toast) | dark tints | light tints |
+| `--c-surface-2`, `--c-drop-h`, `--c-placeholder`, `--c-focus-ring`, `--c-err-ring`, `--c-green-bg-h` | soft cards, drop-zone hover, placeholders, focus rings, WhatsApp button hover | | |
+| `--c-logo-bg`, `--logo-pad` | backing behind the logo, so a dark logo stays visible on a dark page | white, no padding | light pill |
+
+- `tests/appearance.test.jsx` checks WCAG contrast of the main text/background pairs in **every** theme. Two old light-theme pairs are below the minimum (see `docs/KNOWN_ISSUES.md`).
+
 ## Token map
 
 ### Base colors

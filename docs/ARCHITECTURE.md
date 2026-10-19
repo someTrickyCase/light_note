@@ -16,7 +16,7 @@ These shape every decision in the codebase. Breaking one breaks the product.
 src/
 ├── main.jsx                 # entry: snapshots page CSS into window.__INJECTED_CSS__ (for export), mounts <App>
 ├── App.jsx                  # Shell: Topbar + Editor (left) + Preview (right) + Toaster
-├── Topbar.jsx               # "Файл" menu (new / open HTML / download / print), replace dialog, drop .html on the window
+├── Topbar.jsx               # one "Меню" (import: new / open HTML · export: download / print · theme · font), replace dialog, drop .html on the window
 ├── components/              # UI kit, no project knowledge
 │   ├── Button, Chip, Badge, Field, EmptyState, Toast
 │   ├── Toaster.jsx          # renders the toast queue via useSyncExternalStore
@@ -53,6 +53,7 @@ src/
 │   ├── projectFile.js       # project data inside the export: renderProjectData(), readProjectFromHTML()
 │   ├── imageKey.js          # stable image keys (photo:<id>, plot:<which>, logo) shared by IDB, data-ln-ref, export
 │   ├── useHtmlDrop.js       # hook: an .html dropped on the window (outside drop zones)
+│   ├── appearance.js        # theme (5) and font (sans/serif): <html data-theme data-font>, saved in localStorage, useAppearance()
 │   ├── exportScript.js      # EXPORT_RUNTIME_JS: vanilla JS twin of Lightbox for the export
 │   ├── files.js             # readAsDataURL, measureImage, escapeHtml
 │   ├── storageQuota.js      # formatBytes(), freeBytes(), isSpaceLow() — warn under 1 GB left
@@ -165,7 +166,11 @@ Warnings are codes, not text: `{ code: "empty" | "invalidXml" | "noCues", detail
 
 ## Print
 
-All print rules live in `src/styles/print.css`. A4 portrait, 14mm margins, page break before each `.doc__section`.
+All print rules live in `src/styles/print.css`. A4 portrait, 14mm margins, page break before each `.doc__section`. Print is always light and in the standard font: theme and font rules live inside `@media screen`.
+
+## Theme
+
+Five themes: **Графит** (default), **Полночь**, **Вольфрам** (dark), **Светлая**, **Бумага** (light), and two fonts: **Без засечек** (default) / **С засечками**, chosen in the header "Меню". Only `tokens.css` knows colors and fonts: `:root` = light + sans; `:root[data-theme="…"]` and `:root[data-font="serif"]` inside `@media screen`, so print and export stay light and sans. The dark themes share one base block (graphite), then each overrides its surfaces, text and accent. `utils/appearance.js` sets `<html data-theme data-font>` and saves a choice (`tld.theme.v1`, `tld.font.v1`) only when the user picks one; an old saved `"dark"` reads as graphite. A script in `index.html` `<head>` sets both before the first paint. Details and role tokens: `docs/TOKENS.md` → Themes.
 
 ## Recipe: add a new document section
 
@@ -189,7 +194,9 @@ See `docs/I18N.md`.
 - Gallery is a mosaic (justified rows, no cropping); click opens a full-screen carousel (buttons, arrow keys, swipe, counter), also in the export; plots use the same carousel
 - Images are stored as is: no compression, PNG stays PNG; photos store their pixel size
 - Storage indicator removed (the three quota dots); instead a sticky toast warns when less than 1 GB is left
-- Exported HTML can be opened and edited again: the project rides inside the file (images not duplicated); "Файл" menu (new / open HTML / download / print) and drop an .html on the window; a dialog offers to download the current project before replacing it
+- Themes: Графит (default, dark), Полночь, Вольфрам, Светлая, Бумага; font: sans / serif. Whole app incl. preview follows; export and print stay white and sans. All raw colors moved into tokens (role tokens like `--c-strong`, `--c-on-accent`)
+- Header: one "Меню" with groups Импорт (new, open HTML) / Экспорт (download HTML, print) / Тема / Шрифт, text only; choices keep the menu open for live comparison
+- Exported HTML can be opened and edited again: the project rides inside the file (images not duplicated); open from the header menu or drop an .html on the window; a dialog offers to download the current project before replacing it
 
 ### v0.3.0 (2026-08-15)
 
