@@ -1,82 +1,99 @@
-# CSS-токены (Design Tokens)
+# Design tokens
 
-Все цвета, шрифты, отступы, радиусы и тени живут в **одном месте** — секция `:root` в `<style>` внутри `index.html`.
+All raw colors, fonts, font sizes, spacing, radii, shadows, and timings live in **one file**: `src/styles/tokens.css` (the `:root` block).
 
-Чтобы сменить палитру / брендинг, править **только этот блок**. Нигде в коде компонентов цвета не захардкожены.
+To change the palette or branding, edit **only that file**. Component styles must reference tokens with `var(--token)`.
 
-## Карта токенов
+## Token map
 
-### Цвета базовые
-| Токен            | Значение   | Где используется                    |
-|------------------|------------|-------------------------------------|
-| `--c-graphite`   | `#1C2127`  | шапка, основной текст, тёмные кнопки |
-| `--c-graphite-2` | `#262D35`  | hover для тёмных кнопок              |
-| `--c-steel`      | `#2E4153`  | фокус-обводка, ссылки               |
-| `--c-ink-2`      | `#4B5663`  | второстепенный текст                |
-| `--c-soft`       | `#8B95A1`  | подписи, лейблы                     |
-| `--c-page`       | `#EEF1F4`  | фон страницы                        |
-| `--c-surface`    | `#FFFFFF`  | карточки, поля                      |
-| `--c-line`       | `#E2E7EC`  | границы                             |
-| `--c-line-2`     | `#EEF1F4`  | мягкие разделители                  |
+### Base colors
 
-### Цвета бренд
-| Токен         | Значение  | Где                          |
-|---------------|-----------|------------------------------|
-| `--c-accent`  | `#E8702A` | **только главный CTA**       |
-| `--c-accent-d`| `#CC5C1E` | hover акцентной кнопки       |
-| `--c-accent-t`| `#FBEDE4` | фон тёплых плашек (если будут) |
+| Token | Value | Used for |
+|---|---|---|
+| `--c-graphite` | `#1a181b` | header, dark buttons |
+| `--c-graphite-2` | `#201d22` | hover on dark buttons |
+| `--c-steel` | `#2e4153` | focus ring, links |
+| `--c-steel-2` | `#3a5168` | steel hover |
+| `--c-ink` | `#1c2127` | main text |
+| `--c-ink-2` | `#4b5663` | secondary text |
+| `--c-soft` | `#8b95a1` | captions, labels |
+| `--c-page` | `#eef1f4` | page background |
+| `--c-surface` | `#ffffff` | cards, inputs |
+| `--c-line` | `#e2e7ec` | borders |
+| `--c-line-2` | `#eef1f4` | soft dividers |
 
-### Цвета статусов
-У каждого триада: `-bg` (фон), `-bd` (граница), сам цвет.
+### Brand colors
 
-| Токен         | Триада                              | Смысл                  |
-|---------------|-------------------------------------|------------------------|
-| `--c-green`   | `green / green-bg / green-bd`       | в наличии, успех       |
-| `--c-amber`   | `amber / amber-bg / amber-bd`       | под заказ, предупреждение |
-| `--c-greyst`  | `greyst / grey-bg / grey-bd`        | уточнить, нейтрально   |
-| `--c-reg`     | `reg / reg-bg / reg-bd`             | рег. ТС                |
-| `--c-err`     | `err / err-bg / err-bd`             | ошибки валидации       |
-| `--c-info`    | `info / info-bg / info-bd`          | информационные тосты   |
+| Token | Value | Used for |
+|---|---|---|
+| `--c-accent` | `#c490d1` | **main CTA only** |
+| `--c-accent-d` | `#564d65` | accent button hover |
+| `--c-accent-t` | `#fbede4` | warm tinted backgrounds (if any) |
 
-### Типографика
-| Токен         | Значение                       |
-|---------------|--------------------------------|
-| `--ff-display`| `Space Grotesk` — заголовки    |
-| `--ff-text`   | `Inter` — основной текст       |
-| `--ff-mono`   | `JetBrains Mono` — числа, артикулы |
+### Status colors
 
-Размеры: `--fs-xs 11` → `--fs-4xl 40` (rem от 16px).
-Межстрочные: `--lh-tight 1.1` → `--lh-loose 1.7`.
+Each status has three tokens: the color, `-bg` (background), and `-bd` (border).
+
+| Base token | Set | Meaning |
+|---|---|---|
+| `--c-green` | `green / green-bg / green-bd` | available, success |
+| `--c-amber` | `amber / amber-bg / amber-bd` | on order, warning |
+| `--c-greyst` | `greyst / grey-bg / grey-bd` | to be confirmed, neutral |
+| `--c-reg` | `reg / reg-bg / reg-bd` | registered (rental) items |
+| `--c-err` | `err / err-bg / err-bd` | validation errors |
+| `--c-info` | `info / info-bg / info-bd` | info toasts |
+
+### Typography
+
+Fonts are **system font stacks**: no web fonts, so nothing is loaded from the network.
+
+| Token | Stack starts with |
+|---|---|
+| `--ff-display` | `ui-sans-serif, -apple-system, …` (headings) |
+| `--ff-text` | `-apple-system, BlinkMacSystemFont, …` (body text) |
+| `--ff-mono` | `ui-monospace, "SF Mono", "JetBrains Mono", …` (numbers, cue data) |
+
+Sizes: `--fs-xs` 11px, `--fs-sm` 12.5px, `--fs-md` 14px, `--fs-lg` 15px, `--fs-xl` 18px, `--fs-2xl` 22px, `--fs-3xl` 30px, `--fs-4xl` 40px.
+Line heights: `--lh-tight` 1.1, `--lh-snug` 1.25, `--lh-normal` 1.5, `--lh-loose` 1.7.
 
 ### Spacing (4px grid)
-`--s-1 4px` … `--s-16 64px`. Использовать **только** эти токены для margin/padding/gap.
 
-### Радиусы
-`--r-sm 6` (бейджи, инпуты маленькие), `--r-md 9`, `--r-lg 12` (основной), `--r-xl 16` (карточки), `--r-pill 999` (чипы).
+`--s-1` 4px, `--s-2` 8px, `--s-3` 12px, `--s-4` 16px, `--s-5` 20px, `--s-6` 24px, `--s-8` 32px, `--s-10` 40px, `--s-12` 48px, `--s-16` 64px.
 
-### Тени
-`--sh-1` (1px), `--sh-2` (4-14px карточки), `--sh-3` (18-50px большие фреймы), `--sh-accent` (только для primary CTA).
+### Radii
+
+`--r-sm` 6px (badges, small inputs), `--r-md` 9px, `--r-lg` 12px (default), `--r-xl` 16px (cards), `--r-pill` 999px (chips).
+
+### Shadows
+
+`--sh-1` (1px), `--sh-2` (cards), `--sh-3` (large frames), `--sh-accent` (primary CTA only).
 
 ### Motion
-`--t-fast 120ms`, `--t-med 200ms`. Все transitions — через `var(--t-fast)`.
 
-## Как сменить брендинг (пример)
+`--t-fast` 120ms, `--t-med` 200ms.
 
-Допустим, нужен синий акцент вместо оранжевого:
+### Layout
+
+`--container` 1280px, `--header-h` 60px, `--side-w` 420px (editor panel width).
+
+## Example: change the branding
+
+For a blue accent:
 
 ```css
 :root {
-  --c-accent:   #2563EB;
-  --c-accent-d: #1D4ED8;
-  --c-accent-t: #EFF4FF;
+  --c-accent:   #2563eb;
+  --c-accent-d: #1d4ed8;
+  --c-accent-t: #eff4ff;
 }
 ```
 
-Всё — primary CTA, фокус, hover, акцентные подписи подхватят новый цвет. Ничего больше менять не нужно.
+The primary CTA, focus states, and accent labels all pick up the new color. Note: `--sh-accent` has its own `rgba(...)` color, so update it too.
 
-## Правила
+## Rules
 
-1. **Никогда** не использовать hex/rgb в компонентных стилях — только `var(--token)`.
-2. **Никогда** не использовать шрифты в обход токенов (`font-family: Space Grotesk` ❌, `font-family: var(--ff-display)` ✅).
-3. **Spacing** — только через `--s-*`. Если нужен 14px, добавь `--s-3-5: 14px` в токены.
-4. Один новый цвет = одна новая переменная. Не дублировать.
+1. **Never** use hex/rgb values in component styles: only `var(--token)`.
+2. **Never** set fonts directly (`font-family: Inter` ❌, `font-family: var(--ff-text)` ✅).
+3. **Spacing** only through `--s-*`. If you need 14px, add `--s-3-5: 14px` to the tokens.
+4. One new color = one new variable. No duplicates.
+5. The same rules apply to inline `style={{…}}` in JSX.
