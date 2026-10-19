@@ -16,10 +16,13 @@ These shape every decision in the codebase. Breaking one breaks the product.
 src/
 ├── main.jsx                 # entry: snapshots page CSS into window.__INJECTED_CSS__ (for export), mounts <App>
 ├── App.jsx                  # Shell: Topbar + Editor (left) + Preview (right) + Toaster
+├── Topbar.jsx               # "Файл" menu (new / open HTML / download / print), replace dialog, drop .html on the window
 ├── components/              # UI kit, no project knowledge
 │   ├── Button, Chip, Badge, Field, EmptyState, Toast
 │   ├── Toaster.jsx          # renders the toast queue via useSyncExternalStore
 │   ├── ConfirmButton.jsx    # two-click confirm (used instead of window.confirm)
+│   ├── ChoiceDialog.jsx     # modal question on <dialog> with several choices + cancel
+│   ├── Menu.jsx             # dropdown menu: button + role="menu", full keyboard support
 │   ├── FileDrop.jsx         # drag & drop / picker; files as is (no compression) + pixel size
 │   ├── GrowTextarea.jsx     # auto-height textarea (forwardRef)
 │   ├── Lightbox.jsx         # full-screen carousel on <dialog>: ‹ › / ← → / swipe, wraps around
@@ -46,7 +49,10 @@ src/
 │   └── I18nProvider.jsx     # useT() → { t, tn, locale, setLocale }
 ├── utils/
 │   ├── ma2.js               # parseMA2(xml): grandMA2 XML → { cues, fixtures, warnings: [{ code }] }
-│   ├── exportHtml.jsx       # renderExportHTML(project) → string; exportDocument() downloads it
+│   ├── exportHtml.jsx       # renderExportHTML(project) → Promise<string>; exportDocument() downloads it
+│   ├── projectFile.js       # project data inside the export: renderProjectData(), readProjectFromHTML()
+│   ├── imageKey.js          # stable image keys (photo:<id>, plot:<which>, logo) shared by IDB, data-ln-ref, export
+│   ├── useHtmlDrop.js       # hook: an .html dropped on the window (outside drop zones)
 │   ├── exportScript.js      # EXPORT_RUNTIME_JS: vanilla JS twin of Lightbox for the export
 │   ├── files.js             # readAsDataURL, measureImage, escapeHtml
 │   ├── storageQuota.js      # formatBytes(), freeBytes(), isSpaceLow() — warn under 1 GB left
@@ -73,6 +79,7 @@ src/
 - `doc/*` is a **pure function of `project`**: no dispatch, no side effects, no browser-only APIs during render. It must render the same way in the preview, in `renderToStaticMarkup` (export), and in print.
 - Interactivity in `doc/*` (the carousel) must also work in the export, so it's duplicated in plain JS in `utils/exportScript.js`. It relies on: `[data-zoom-group]` (one per section, holds its own `.lightbox`), `.doc__zoom` (+ `data-title`, `data-caption`; DOM order = carousel order), `.lightbox`, `.lightbox__close`, `.lightbox__nav--prev/--next`, `.lightbox__img`, `.lightbox__count`, `.lightbox__title`, `.lightbox__caption`. If you change them, update `exportScript.js` too.
 - `components/*` is a UI kit: it doesn't import `state/`, `editor/`, or `doc/`. Pass data in through props (e.g. `Lightbox` gets `items` / `index`).
+- Images in `doc/*` carry `data-ln-ref="<imageKey>"`: "Open HTML" finds each picture of an exported file by it. Keys come from `utils/imageKey.js` (pure, so `doc/*` may import it).
 
 These layer rules are enforced by ESLint (`no-restricted-imports` in `eslint.config.js`).
 
@@ -121,8 +128,19 @@ Everything lives in **IndexedDB** (database `tld`, version 2). Schema version of
 `exportDocument(project)` in `utils/exportHtml.jsx`:
 
 1. `renderExportHTML(project)`: `renderToStaticMarkup(<I18nProvider initialLocale="ru"><DocumentView/></I18nProvider>)`. Images are already dataURLs in memory, so they end up inline.
-2. Wrap in a full HTML page with the CSS from `window.__INJECTED_CSS__` (snapshot taken in `main.jsx`) and `EXPORT_RUNTIME_JS`.
-3. Download as `<showName>.html`.
+2. `renderProjectData(project, markup)` (`utils/projectFile.js`): the project itself as `<script type="application/json" id="light-note-project">{ app: "light-note", format: 1, project }</script>`. Every image the markup already shows (`data-ln-ref`) is replaced by `"__ref:<key>"`, so no picture is stored twice; an image the document didn't show stays inline. `<` is written as `\u003c`, so user text like `</script>` can't close the block.
+3. Wrap in a full HTML page with the CSS from `window.__INJECTED_CSS__` (snapshot taken in `main.jsx`), `<meta name="generator" content="Light Note">`, the data block and `EXPORT_RUNTIME_JS`.
+4. Download as `<showName>.html`.
+
+## Open an exported HTML
+
+`Topbar.jsx` → menu "Открыть HTML…" (hidden `<input type=file>`) or an `.html` dropped on the window (`useHtmlDrop`; drops on a `FileDrop` zone are already handled there).
+
+1. `readProjectFromHTML(text)`: `DOMParser` builds a document **without running its scripts**, so a foreign file can't do anything. Read the data block; no block → `ProjectFileError("noData")` (old export or another site), bad JSON / not ours → `"broken"`, `format` or `project.version` newer than the app → `"newer"`.
+2. Same repair as a load (`migrateProject` from `storage.js`), then `__ref:` → the `src` of `img[data-ln-ref]`. Only `data:image/…` is accepted; anything else (links, `javascript:`) becomes "missing". Photos without a size get measured.
+3. Only after the file checks out: if the current project isn't empty (`isEmptyProject`), `ChoiceDialog` asks: download the current one first / continue without saving / cancel. Then `REPLACE` → autosave as usual.
+
+Format versions: `FILE_FORMAT` is the wrapper, `SCHEMA_VERSION` the project. Change the project shape → bump `SCHEMA_VERSION` and add a migration in `migrateProject` (old files keep opening). An app older than the file refuses it with "newer" instead of guessing.
 
 ## Gallery and carousel
 
@@ -171,6 +189,7 @@ See `docs/I18N.md`.
 - Gallery is a mosaic (justified rows, no cropping); click opens a full-screen carousel (buttons, arrow keys, swipe, counter), also in the export; plots use the same carousel
 - Images are stored as is: no compression, PNG stays PNG; photos store their pixel size
 - Storage indicator removed (the three quota dots); instead a sticky toast warns when less than 1 GB is left
+- Exported HTML can be opened and edited again: the project rides inside the file (images not duplicated); "Файл" menu (new / open HTML / download / print) and drop an .html on the window; a dialog offers to download the current project before replacing it
 
 ### v0.3.0 (2026-08-15)
 

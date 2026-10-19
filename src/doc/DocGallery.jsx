@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useT } from "../i18n/I18nProvider.jsx";
 import { Lightbox } from "../components/Lightbox.jsx";
 import { ZoomImage } from "./ZoomImage.jsx";
+import { imageKey } from "../utils/imageKey.js";
 
 // Для фото без известного размера (битая картинка в старом проекте)
 const FALLBACK_RATIO = 4 / 3;
@@ -32,7 +33,7 @@ export function DocGallery({ project }) {
           <figure key={photo.id} className="doc__tile" style={{ "--ar": aspectRatio(photo) }}>
             <ZoomImage
               src={photo.src} alt={photo.tag || ""} title={photo.tag || ""} caption={photo.caption || ""}
-              onOpen={() => setIndex(photoIndex)}
+              imageRef={imageKey.photo(photo.id)} onOpen={() => setIndex(photoIndex)}
             />
             {photo.tag || photo.caption ? (
               <figcaption className="doc__tile-cap">

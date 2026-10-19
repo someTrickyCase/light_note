@@ -11,11 +11,31 @@ export const DICT = {
 		"app.name": "Light Note",
 		"app.tagline": "редактор технической документации шоу",
 		"app.actions.export": "Скачать HTML",
-		"app.actions.print": "Печать / PDF",
-		"app.actions.new": "Новый",
 		"app.status.saved": "Сохранено локально",
 		"app.status.unsaved": "Не сохранено",
-		"app.actions.new.confirm": "Точно? Нажмите ещё раз",
+
+		"menu.file": "Файл",
+		"menu.new": "Новый проект",
+		"menu.open": "Открыть HTML…",
+		"menu.export": "Скачать HTML",
+		"menu.print": "Печать / PDF",
+
+		"replace.title": "Заменить текущий проект?",
+		"replace.unnamed": "без названия",
+		"replace.text.new": (current) =>
+			`Текущий проект «${current}» будет удалён из браузера. Скачайте его как HTML — потом его можно снова открыть и редактировать.`,
+		"replace.text.open": (file, current) =>
+			`Откроется «${file}». Текущий проект «${current}» будет заменён. Скачайте его как HTML, чтобы не потерять.`,
+		"replace.save": "Скачать текущий и продолжить",
+		"replace.discard": "Продолжить без сохранения",
+
+		"open.ok": (file) => `Открыт проект из «${file}»`,
+		"open.error.noData":
+			"В этом файле нет данных проекта. Открыть можно только HTML, скачанный из Light Note (начиная с этой версии).",
+		"open.error.broken": "Файл повреждён: данные проекта не читаются.",
+		"open.error.newer": "Файл сделан более новой версией Light Note. Обновите приложение, чтобы открыть его.",
+		"open.error.notHtml": "Это не HTML-файл. Чтобы открыть проект, перетащите .html, скачанный из Light Note. Фото добавляйте в разделе «Галерея».",
+		"open.error.failed": (message) => `Не удалось открыть файл: ${message}`,
 		"app.logo.left": "LIGHT",
 		"app.logo.right": "NOTE",
 		"app.loading": "Загружаем проект…",
@@ -182,6 +202,7 @@ export const DICT = {
 
 		"common.delete": "Удалить",
 		"common.close": "Закрыть",
+		"common.cancel": "Отмена",
 		"common.replace": "Заменить",
 		"common.zoom": "Увеличить",
 
@@ -194,7 +215,5 @@ export const DICT = {
 			`Место в браузере заканчивается: осталось ${free}. Новые фото могут не сохраниться. Удалите лишние фото и сделайте экспорт HTML как резервную копию.`,
 		"common.moveUp": "Выше",
 		"common.moveDown": "Ниже",
-		"common.confirmNew":
-			"Начать новое шоу? Текущие данные будут заменены пустыми.",
 	},
 };

@@ -8,6 +8,7 @@ import { DocumentView } from "../doc/DocumentView.jsx";
 import { escapeHtml } from "./files.js";
 import { makeTranslator } from "../i18n/translate.js";
 import { EXPORT_RUNTIME_JS } from "./exportScript.js";
+import { renderProjectData } from "./projectFile.js";
 
 // Достаём CSS, который сейчас в документе (включая токены).
 // Используем document.styleSheets — сработает только если приложение
@@ -37,9 +38,9 @@ function getTokensCSS() {
 // Экспорт пока только на русском. При добавлении языков — передавать текущую локаль.
 const EXPORT_LOCALE = "ru";
 
-export function exportDocument(project) {
+export async function exportDocument(project) {
 	if (!project) { return; }
-	const blob = new Blob([renderExportHTML(project)], { type: "text/html;charset=utf-8" });
+	const blob = new Blob([await renderExportHTML(project)], { type: "text/html;charset=utf-8" });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement("a");
 	a.href = url;
@@ -55,16 +56,17 @@ export function exportDocument(project) {
 }
 
 // Полный standalone HTML документа (строка). Отдельно от exportDocument — для тестов.
-export function renderExportHTML(project) {
+// Внутри — данные проекта, чтобы файл можно было снова открыть (utils/projectFile.js).
+export async function renderExportHTML(project) {
 	const body = renderToStaticMarkup(
 		<I18nProvider initialLocale={EXPORT_LOCALE}>
 			<DocumentView project={project} />
 		</I18nProvider>,
 	);
-	return buildExportHTML(body, project);
+	return buildExportHTML(body, project, await renderProjectData(project, body));
 }
 
-function buildExportHTML(body, project) {
+function buildExportHTML(body, project, projectData) {
 	const { tn } = makeTranslator(EXPORT_LOCALE);
 	const title = tn("export.title", project.meta.showName || "Light Note");
 	return `<!doctype html>
@@ -72,6 +74,7 @@ function buildExportHTML(body, project) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="Light Note">
 <title>${escapeHtml(title)}</title>
 <style>
 ${getTokensCSS()}
@@ -80,6 +83,7 @@ body { padding: 0; background: #fff; }
 </head>
 <body>
 ${body}
+${projectData}
 <script>${EXPORT_RUNTIME_JS}</script>
 </body>
 </html>`;

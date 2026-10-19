@@ -2,18 +2,15 @@ import { useEffect } from "react";
 import { I18nProvider, useT } from "./i18n/I18nProvider.jsx";
 import {
 	ProjectProvider,
-	useDispatch,
 	useProject,
 	useProjectLoading,
 } from "./state/ProjectProvider.jsx";
 import { storage } from "./state/storage.js";
 import { pushToast } from "./utils/toast.js";
-import { exportDocument } from "./utils/exportHtml.jsx";
 import { useSpaceWarning } from "./utils/useSpaceWarning.js";
 
-import { Button } from "./components/Button.jsx";
-import { ConfirmButton } from "./components/ConfirmButton.jsx";
 import { Toaster } from "./components/Toaster.jsx";
+import { Topbar } from "./Topbar.jsx";
 
 import { MetaSection } from "./editor/MetaSection.jsx";
 import { TimesSection } from "./editor/TimesSection.jsx";
@@ -25,44 +22,6 @@ import { CommentarySection } from "./editor/CommentarySection.jsx";
 import { StaffSection } from "./editor/StaffSection.jsx";
 
 import { DocumentView } from "./doc/DocumentView.jsx";
-
-function Topbar() {
-	const { t } = useT();
-	const p = useProject();
-	const d = useDispatch();
-	return (
-		<header className="topbar">
-			<div className="topbar__logo">
-				{t("app.logo.left")}<b>·</b>{t("app.logo.right")}
-			</div>
-			<span className="topbar__sep" />
-			<span className="topbar__meta">{t("app.tagline")}</span>
-			<span className="topbar__sep" />
-			<span className="topbar__meta">
-				{p.meta.showName ? `«${p.meta.showName}»` : t("app.status.unsaved")} ·{" "}
-				{t("app.status.saved")}
-			</span>
-			<div className="topbar__spacer" />
-			<div className="topbar__actions">
-				<ConfirmButton
-					variant="ghost"
-					size="sm"
-					title={t("common.confirmNew")}
-					confirmLabel={t("app.actions.new.confirm")}
-					onConfirm={() => d({ type: "RESET" })}
-				>
-					{t("app.actions.new")}
-				</ConfirmButton>
-				<Button variant="ghost" size="sm" onClick={() => globalThis.print()}>
-					🖨 {t("app.actions.print")}
-				</Button>
-				<Button variant="primary" size="sm" onClick={() => exportDocument(p)}>
-					↓ {t("app.actions.export")}
-				</Button>
-			</div>
-		</header>
-	);
-}
 
 function Editor() {
 	const { t } = useT();

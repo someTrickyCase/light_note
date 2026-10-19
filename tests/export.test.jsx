@@ -56,10 +56,10 @@ function swipe(dialog, dx) {
 }
 
 describe("renderExportHTML", () => {
-	it("is a standalone page: inline images, CSS, runtime script, no markers, carousel closed", () => {
+	it("is a standalone page: inline images, CSS, runtime script, no markers, carousel closed", async () => {
 		globalThis.__INJECTED_CSS__ = ".marker-css { color: red }";
 		try {
-			const html = renderExportHTML(project());
+			const html = await renderExportHTML(project());
 			expect(html.startsWith("<!doctype html>")).toBe(true);
 			expect(html).toContain(".marker-css");
 			expect(html).toContain(EXPORT_RUNTIME_JS);
@@ -74,37 +74,37 @@ describe("renderExportHTML", () => {
 		}
 	});
 
-	it("without the CSS snapshot, it collects the page's style sheets", () => {
-		const html = renderExportHTML(project());
+	it("without the CSS snapshot, it collects the page's style sheets", async () => {
+		const html = await renderExportHTML(project());
 		expect(html).toContain(".doc__mosaic");
 	});
 
-	it("skips style sheets it may not read (cross-origin)", () => {
+	it("skips style sheets it may not read (cross-origin)", async () => {
 		const fake = { cssRules: null };
 		Object.defineProperty(fake, "cssRules", { get() { throw new DOMException("no", "SecurityError"); } });
 		const real = Object.getOwnPropertyDescriptor(Document.prototype, "styleSheets");
 		Object.defineProperty(document, "styleSheets", { configurable: true, get: () => [fake, ...real.get.call(document)] });
 		try {
-			expect(renderExportHTML(project())).toContain(".doc__mosaic");
+			expect(await renderExportHTML(project())).toContain(".doc__mosaic");
 		} finally {
 			delete document.styleSheets;
 		}
 	});
 
-	it("escapes the show name in the title", () => {
-		const html = renderExportHTML(project({ meta: { ...emptyProject().meta, showName: "<b>Bad</b>" } }));
+	it("escapes the show name in the title", async () => {
+		const html = await renderExportHTML(project({ meta: { ...emptyProject().meta, showName: "<b>Bad</b>" } }));
 		expect(html).toContain("&lt;b&gt;Bad&lt;/b&gt;");
 		expect(html).not.toContain("<title><b>");
 	});
 
-	it("an empty project falls back to the app name", () => {
-		expect(renderExportHTML(emptyProject())).toContain(`<title>${tn("export.title", "Light Note")}</title>`);
+	it("an empty project falls back to the app name", async () => {
+		expect(await renderExportHTML(emptyProject())).toContain(`<title>${tn("export.title", "Light Note")}</title>`);
 	});
 });
 
 describe("exported carousel (vanilla JS)", () => {
 	it("opens the clicked photo, ‹ › / ← → wrap around, plots are a separate group", async () => {
-		const frameDocument = await openExport(renderExportHTML(project()));
+		const frameDocument = await openExport(await renderExportHTML(project()));
 		const gallery = groupOf(frameDocument, "gallery");
 		const dialog = gallery.querySelector(".lightbox");
 		expect(state(gallery).open).toBe(false);
@@ -132,7 +132,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("swipe moves, a short move doesn't, and the click after a swipe doesn't close", async () => {
-		const frameDocument = await openExport(renderExportHTML(project()));
+		const frameDocument = await openExport(await renderExportHTML(project()));
 		const gallery = groupOf(frameDocument, "gallery");
 		const dialog = gallery.querySelector(".lightbox");
 		gallery.querySelector(".doc__zoom").click();
@@ -148,7 +148,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("closes with ✕ and with a backdrop click, but not with a click on the photo", async () => {
-		const frameDocument = await openExport(renderExportHTML(project()));
+		const frameDocument = await openExport(await renderExportHTML(project()));
 		const gallery = groupOf(frameDocument, "gallery");
 		const dialog = gallery.querySelector(".lightbox");
 		gallery.querySelector(".doc__zoom").click();
@@ -162,7 +162,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("a single photo: keys and swipes do nothing, and a long drag doesn't close it", async () => {
-		const frameDocument = await openExport(renderExportHTML(project({ photos: project().photos.slice(0, 1) })));
+		const frameDocument = await openExport(await renderExportHTML(project({ photos: project().photos.slice(0, 1) })));
 		const gallery = groupOf(frameDocument, "gallery");
 		const dialog = gallery.querySelector(".lightbox");
 		gallery.querySelector(".doc__zoom").click();
@@ -173,7 +173,7 @@ describe("exported carousel (vanilla JS)", () => {
 
 	it("works without <dialog>.showModal (old browsers): uses the open attribute", async () => {
 		const stub = "<script>HTMLDialogElement.prototype.showModal = undefined; HTMLDialogElement.prototype.close = undefined;</script>";
-		const frameDocument = await openExport(renderExportHTML(project()).replace("<head>", `<head>${stub}`));
+		const frameDocument = await openExport((await renderExportHTML(project())).replace("<head>", `<head>${stub}`));
 		const gallery = groupOf(frameDocument, "gallery");
 		const dialog = gallery.querySelector(".lightbox");
 		gallery.querySelector(".doc__zoom").click();
@@ -183,7 +183,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("also starts when the script runs after the page has loaded", async () => {
-		const html = renderExportHTML(project()).replace(`<script>${EXPORT_RUNTIME_JS}</script>`, "");
+		const html = (await renderExportHTML(project())).replace(`<script>${EXPORT_RUNTIME_JS}</script>`, "");
 		const frameDocument = await openExport(html);
 		expect(frameDocument.readyState).toBe("complete");
 		const script = frameDocument.createElement("script");
@@ -194,7 +194,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("ignores a group without a carousel or without images", async () => {
-		const html = renderExportHTML(project()).replace("<body>", '<body><div data-zoom-group="empty"><button class="doc__zoom"></button></div><div data-zoom-group="none"><dialog class="lightbox"></dialog></div>');
+		const html = (await renderExportHTML(project())).replace("<body>", '<body><div data-zoom-group="empty"><button class="doc__zoom"></button></div><div data-zoom-group="none"><dialog class="lightbox"></dialog></div>');
 		const frameDocument = await openExport(html);
 		const errors = [];
 		frameDocument.defaultView.addEventListener("error", (event) => errors.push(event.message));
@@ -205,7 +205,7 @@ describe("exported carousel (vanilla JS)", () => {
 	});
 
 	it("a tile without an <img> opens with an empty picture instead of crashing", async () => {
-		const html = renderExportHTML(project({ plots: { base: null, show: null } })).replace(/(<button[^>]*class="doc__zoom"[^>]*>)<img[^>]*>/, "$1");
+		const html = (await renderExportHTML(project({ plots: { base: null, show: null } }))).replace(/(<button[^>]*class="doc__zoom"[^>]*>)<img[^>]*>/, "$1");
 		const frameDocument = await openExport(html);
 		const gallery = groupOf(frameDocument, "gallery");
 		gallery.querySelector(".doc__zoom").click();
@@ -225,7 +225,7 @@ describe("exportDocument (download)", () => {
 
 	it("downloads <showName>.html with the rendered page", async () => {
 		const clicks = captureDownload();
-		exportDocument(project({ meta: { ...emptyProject().meta, showName: "Гамлет / Hamlet: 2026" } }));
+		await exportDocument(project({ meta: { ...emptyProject().meta, showName: "Гамлет / Hamlet: 2026" } }));
 		expect(clicks).toHaveLength(1);
 		expect(clicks[0].download).toBe("Гамлет_Hamlet_2026.html");
 		expect(clicks[0].inPage).toBe(true);
@@ -239,7 +239,7 @@ describe("exportDocument (download)", () => {
 		try {
 			const revoke = vi.spyOn(URL, "revokeObjectURL");
 			const clicks = captureDownload();
-			exportDocument(emptyProject());
+			await exportDocument(emptyProject());
 			expect(clicks[0].download).toBe("light-note.html");
 			expect(revoke).not.toHaveBeenCalled();
 			vi.advanceTimersByTime(1000);
@@ -249,9 +249,9 @@ describe("exportDocument (download)", () => {
 		}
 	});
 
-	it("does nothing without a project", () => {
+	it("does nothing without a project", async () => {
 		const clicks = captureDownload();
-		exportDocument(null);
+		await exportDocument(null);
 		expect(clicks).toEqual([]);
 	});
 });

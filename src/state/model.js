@@ -21,3 +21,11 @@ export function emptyProject() {
     commentary: "",
   };
 }
+
+// Проект пустой — как после «Новый»: заменять его можно без вопросов.
+// version не сравниваем: пустой проект старой схемы тоже пустой.
+const withoutVersion = (project) => JSON.stringify({ ...project, version: undefined });
+
+export function isEmptyProject(project) {
+  return withoutVersion(project) === withoutVersion(emptyProject());
+}
