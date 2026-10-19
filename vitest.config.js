@@ -35,6 +35,7 @@ export default defineConfig({
 				"src/utils/projectFile.js",
 				"src/utils/imageKey.js",
 				"src/utils/useHtmlDrop.js",
+				"src/utils/appearance.js",
 				"src/components/Menu.jsx",
 				"src/components/ChoiceDialog.jsx",
 				"src/Topbar.jsx",
