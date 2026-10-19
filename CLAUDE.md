@@ -9,6 +9,7 @@ The built app and the exported document must work from `file://` with **no netwo
 npm run dev       # dev server, http://localhost:5173
 npm run build     # production build → dist/ (runs scripts/postbuild.js after)
 npm run preview   # serve dist/
+npm run lint      # strict ESLint (eslint.config.js): every rule is an error
 ```
 
 ## Hard rules
@@ -23,7 +24,7 @@ npm run preview   # serve dist/
 
 ## Before saying "done"
 
-1. `npm run build` passes.
+1. `npm run lint` and `npm run build` pass. Don't silence a rule with `eslint-disable` without a comment explaining why.
 2. For UI changes: check the preview, print, and an exported HTML opened from `file://`.
 3. Docs in `docs/` still match the code. Update them in the same commit.
 

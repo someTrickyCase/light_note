@@ -68,6 +68,7 @@ npm install
 | `npm run dev` | Start Vite dev server with HMR at <http://localhost:5173> |
 | `npm run build` | Production build into `dist/` (single IIFE bundle, CSS inlined via custom Vite plugin) |
 | `npm run preview` | Serve `dist/` locally for final verification |
+| `npm run lint` | Strict ESLint check (`eslint.config.js`); `npm run lint:fix` applies safe autofixes |
 
 ## Build output
 
