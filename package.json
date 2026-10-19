@@ -1,7 +1,7 @@
 {
 	"name": "theatre-light-note",
 	"private": true,
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"type": "module",
 	"description": "Light Note — браузерный редактор технической документации для театральных световых шоу. Полностью офлайн.",
 	"scripts": {
