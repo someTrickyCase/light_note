@@ -53,6 +53,7 @@ const HANDLERS = new Map(Object.entries({
     const startOrder = state.photos.length;
     const added = a.items.map((it, index) => ({
       id: uid(), src: it.src, tag: guessTag(it.name), caption: "", order: startOrder + index,
+      width: it.width, height: it.height,
     }));
     return { ...state, photos: [...state.photos, ...added] };
   },

@@ -1,10 +1,11 @@
 import { useRef, useState } from "react";
 import { cn } from "./cn.js";
 import { useT } from "../i18n/I18nProvider.jsx";
-import { compressImage, readAsDataURL } from "../utils/files.js";
+import { measureImage, readAsDataURL } from "../utils/files.js";
 import { pushToast } from "../utils/toast.js";
 
-export function FileDrop({ onFiles, hint, multiple = true, children, compress = true }) {
+// onFiles([{ name, src, width, height }]) — файлы как есть (без сжатия), с размером в пикселях
+export function FileDrop({ onFiles, hint, multiple = true, children }) {
   const { t, tn } = useT();
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -18,9 +19,9 @@ export function FileDrop({ onFiles, hint, multiple = true, children, compress = 
     try {
       const items = await Promise.all(
         [...files].map(async (file) => {
-          const raw = await readAsDataURL(file);
-          const source = compress ? await compressImage(raw) : raw;
-          return { name: file.name, src: source };
+          const source = await readAsDataURL(file);
+          const { width, height } = await measureImage(source);
+          return { name: file.name, src: source, width, height };
         })
       );
       onFiles(items);
