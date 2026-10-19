@@ -234,3 +234,37 @@
 .drop__hint { margin-top: var(--s-1); }
 .field__hint--top { margin-top: var(--s-2); }
 button.chip { font-family: var(--ff-mono); }
+
+/* ---- menu (components/Menu.jsx): кнопка + выпадающий список ---- */
+.menu { position: relative; }
+.menu__button::after { content: "▾" / ""; margin-left: 2px; } /* «/ ""» — только украшение, не часть имени кнопки для скринридера */
+.menu__list {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+  min-width: 220px; padding: var(--s-1);
+  display: flex; flex-direction: column;
+  background: var(--c-surface); border: 1px solid var(--c-line); border-radius: var(--r-lg);
+  box-shadow: var(--sh-3);
+}
+.menu__item {
+  text-align: left; padding: 8px 12px; border: 0; border-radius: var(--r-md);
+  background: none; color: var(--c-ink); font: inherit; font-size: var(--fs-sm); cursor: pointer;
+}
+.menu__item:hover, .menu__item:focus-visible { background: var(--c-page); outline: none; }
+.menu__sep { height: 1px; margin: var(--s-1) 0; background: var(--c-line-2); }
+
+/* ---- choice dialog (components/ChoiceDialog.jsx) ---- */
+.choice-dialog {
+  max-width: min(580px, calc(100vw - 32px)); padding: var(--s-5);
+  border: 1px solid var(--c-line); border-radius: var(--r-xl);
+  background: var(--c-surface); color: var(--c-ink); box-shadow: var(--sh-3);
+}
+.choice-dialog::backdrop { background: var(--c-backdrop); }
+.choice-dialog__title { margin: 0 0 var(--s-3); font-family: var(--ff-display); font-size: var(--fs-lg); }
+.choice-dialog__body { font-size: var(--fs-sm); color: var(--c-ink-2); }
+.choice-dialog__body p { margin: 0; }
+.choice-dialog__actions { display: flex; flex-wrap: wrap; gap: var(--s-2); margin-top: var(--s-5); }
+
+@media (max-width: 600px) {
+  .menu__list { left: 0; right: auto; width: 100%; }
+  .choice-dialog__actions { flex-direction: column; }
+}
