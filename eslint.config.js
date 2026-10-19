@@ -42,7 +42,7 @@ const CYRILLIC_LITERAL = "Literal[value=/[а-яё]/i]:not([regex]), TemplateElem
 
 const RESTRICTED_SYNTAX = [
 	{ selector: RAW_STYLE_VALUE, message: "Raw value in style={{}}: use var(--token) from src/styles/tokens.css." },
-	{ selector: CYRILLIC_LITERAL, message: "Hardcoded UI text: add a key to src/i18n/dict.js and use t()." },
+	{ selector: CYRILLIC_LITERAL, message: "Hardcoded UI text: add a key to src/i18n/locales/*.js and use t()." },
 ];
 
 export default [
@@ -179,9 +179,9 @@ export default [
 		rules: { "no-restricted-globals": "off" },
 	},
 
-	// словарь — единственное место для текста
+	// словарь (фразы — по файлу на язык) — единственное место для текста
 	{
-		files: ["src/i18n/dict.js"],
+		files: ["src/i18n/dict.js", "src/i18n/locales/*.js"],
 		rules: { "no-restricted-syntax": ["error", RESTRICTED_SYNTAX[0]] },
 	},
 

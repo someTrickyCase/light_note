@@ -1,6 +1,6 @@
 // =====================================================================
 // ВЕРХНЯЯ ПАНЕЛЬ: одно меню справа — импорт (новый / открыть HTML),
-// экспорт (скачать HTML / печать), тема и шрифт. Без значков в списке.
+// экспорт (скачать HTML / печать), тема, шрифт и язык. Без значков в списке.
 // =====================================================================
 // Открыть проект можно из меню или бросив .html на окно. Порядок важен:
 // сначала файл читается и проверяется (utils/projectFile.js), и только потом
@@ -16,6 +16,7 @@ import { exportDocument } from "./utils/exportHtml.jsx";
 import { ProjectFileError, readProjectFromHTML } from "./utils/projectFile.js";
 import { isHtmlFile, useHtmlDrop } from "./utils/useHtmlDrop.js";
 import { FONTS, THEMES, useAppearance } from "./utils/appearance.js";
+import { LOCALE_NAMES, SUPPORTED_LOCALES } from "./i18n/dict.js";
 import { ChoiceDialog } from "./components/ChoiceDialog.jsx";
 import { Menu } from "./components/Menu.jsx";
 
@@ -26,7 +27,8 @@ function openErrorMessage(tn, error) {
 
 // pending: что поставить вместо текущего проекта, пока пользователь решает.
 // { project, fileName } — открытый файл; fileName = null — «Новый проект».
-function useProjectReplace() {
+// exportOptions: язык и шрифт документа — как сейчас в приложении
+function useProjectReplace(exportOptions) {
 	const { tn } = useT();
 	const current = useProject();
 	const dispatch = useDispatch();
@@ -54,17 +56,18 @@ function useProjectReplace() {
 		}
 	};
 	const saveThenApply = async () => {
-		await exportDocument(current);
+		await exportDocument(current, exportOptions);
 		apply(pending);
 	};
 	return { current, pending, request, openFile, apply, saveThenApply, cancel: () => setPending(null) };
 }
 
 export function Topbar() {
-	const { t, tn } = useT();
+	const { t, tn, locale, setLocale } = useT();
 	const inputRef = useRef(null);
-	const { current, pending, request, openFile, apply, saveThenApply, cancel } = useProjectReplace();
 	const { theme, font, setTheme, setFont } = useAppearance();
+	const exportOptions = { locale, font };
+	const { current, pending, request, openFile, apply, saveThenApply, cancel } = useProjectReplace(exportOptions);
 
 	useHtmlDrop((file) => {
 		if (file) { openFile(file); } else { pushToast({ tone: "err", msg: t("open.error.notHtml") }); }
@@ -77,7 +80,7 @@ export function Topbar() {
 		{ label: t("menu.open"), onSelect: () => inputRef.current.click() },
 		{ separator: true, id: "sep-export" },
 		{ heading: t("menu.exportGroup"), id: "h-export" },
-		{ label: t("menu.export"), onSelect: () => exportDocument(current) },
+		{ label: t("menu.export"), onSelect: () => exportDocument(current, exportOptions) },
 		{ label: t("menu.print"), onSelect: () => globalThis.print() },
 		{ separator: true, id: "sep-theme" },
 		{ heading: t("menu.theme"), id: "h-theme" },
@@ -85,6 +88,9 @@ export function Topbar() {
 		{ separator: true, id: "sep-font" },
 		{ heading: t("menu.font"), id: "h-font" },
 		...FONTS.map((id) => ({ label: t(`appearance.font.${id}`), checked: font === id, onSelect: () => setFont(id) })),
+		{ separator: true, id: "sep-language" },
+		{ heading: t("menu.language"), id: "h-language" },
+		...SUPPORTED_LOCALES.map((id) => ({ label: LOCALE_NAMES[id], checked: locale === id, onSelect: () => setLocale(id) })),
 	];
 
 	return (
@@ -96,7 +102,7 @@ export function Topbar() {
 			<span className="topbar__meta">{t("app.tagline")}</span>
 			<span className="topbar__sep" />
 			<span className="topbar__meta">
-				{current.meta.showName ? `«${current.meta.showName}»` : t("app.status.unsaved")} ·{" "}
+				{current.meta.showName ? tn("app.status.show", current.meta.showName) : t("app.status.unsaved")} ·{" "}
 				{t("app.status.saved")}
 			</span>
 			<div className="topbar__spacer" />

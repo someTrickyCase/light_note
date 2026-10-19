@@ -1,7 +1,8 @@
 import { useT } from "../i18n/I18nProvider.jsx";
+import { formatDate } from "../utils/formatDate.js";
 
 export function DocHeader({ project }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const { meta } = project;
   // пустые поля не выводятся (по требованию)
   const rows = [];
@@ -14,7 +15,7 @@ export function DocHeader({ project }) {
   if (meta.date) {rows.push(
     <div key="date" className="doc__byline-row">
       <div className="doc__byline-k">{t("meta.date")}</div>
-      <div className="doc__byline-v">{meta.date}</div>
+      <div className="doc__byline-v">{formatDate(meta.date, locale)}</div>
     </div>
   );}
   if (meta.director) {rows.push(

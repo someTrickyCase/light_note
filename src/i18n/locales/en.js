@@ -1,0 +1,230 @@
+// =====================================================================
+// I18N · ENGLISH
+// =====================================================================
+// Ключ слева не трогать — по нему код ищет фразу. Менять текст справа.
+// Функция (n) => `…${n}…` — фраза со вставкой: ${…} и обратные кавычки оставить.
+// Каждая строка кончается запятой. Документация: docs/I18N.md
+
+export const en = {
+	"app.name": "Light Note",
+	"app.tagline": "technical documentation editor for shows",
+	"app.status.saved": "Saved locally",
+	"app.status.unsaved": "Not saved",
+	"app.status.show": (name) => `“${name}”`,
+	"app.title": "Light Note · technical documentation editor for shows",
+
+	"menu.main": "Menu",
+	"menu.import": "Import",
+	"menu.exportGroup": "Export",
+	"menu.theme": "Theme",
+	"menu.font": "Font",
+	"menu.language": "Language",
+	"appearance.theme.graphite": "Graphite",
+	"appearance.theme.midnight": "Midnight",
+	"appearance.theme.tungsten": "Tungsten",
+	"appearance.theme.light": "Light",
+	"appearance.theme.paper": "Paper",
+	"appearance.font.sans": "Sans serif",
+	"appearance.font.serif": "Serif",
+
+	"menu.new": "New project",
+	"menu.open": "Open HTML…",
+	"menu.export": "Download HTML",
+	"menu.print": "Print / PDF",
+
+	"replace.title": "Replace the current project?",
+	"replace.unnamed": "untitled",
+	"replace.text.new": (current) =>
+		`The current project “${current}” will be removed from the browser. Download it as HTML first — you can open and edit it again later.`,
+	"replace.text.open": (file, current) =>
+		`“${file}” will be opened. The current project “${current}” will be replaced. Download it as HTML so you don't lose it.`,
+	"replace.save": "Download current and continue",
+	"replace.discard": "Continue without saving",
+
+	"open.ok": (file) => `Project opened from “${file}”`,
+	"open.error.noData":
+		"This file has no project data. Only HTML files downloaded from Light Note (this version or newer) can be opened.",
+	"open.error.broken": "The file is damaged: the project data can't be read.",
+	"open.error.newer": "This file was made by a newer version of Light Note. Update the app to open it.",
+	"open.error.notHtml": "This is not an HTML file. To open a project, drop an .html downloaded from Light Note. Add photos in the Gallery section.",
+	"open.error.failed": (message) => `Couldn't open the file: ${message}`,
+	"app.logo.left": "LIGHT",
+	"app.logo.right": "NOTE",
+	"app.loading": "Loading project…",
+	"app.frame.title": (name) => `light-note · ${name || "new show"}`,
+
+	"storage.toast.quota":
+		"Couldn't save to the browser: storage is full. Use fewer or smaller photos.",
+	"storage.toast.error": (message) => `Save error: ${message}`,
+	"storage.toast.loadFailed": (message) =>
+		`Couldn't read the project from the browser (${message}). Changes are NOT being saved — export to HTML.`,
+
+	"export.title": (name) => `${name} · technical documentation`,
+
+	"editor.heading": "Show details",
+	"editor.meta": "General",
+	"editor.times": "Time",
+	"editor.plots": "Rig",
+	"editor.gallery": "Fixture photos",
+	"editor.fixtures": "Additional fixtures",
+	"editor.cues": "Cue list",
+	"editor.commentary": "Designer's notes",
+
+	"meta.showName": "Show title",
+	"meta.showName.ph": "e.g. “The Snow Queen”",
+	"meta.venue": "Venue",
+	"meta.venue.ph": "theatre, hall, city",
+	"meta.date": "Premiere / run date",
+	"meta.ld": "Lighting designer",
+	"meta.ld.ph": "Full name",
+	"meta.director": "Director",
+	"meta.director.ph": "Full name",
+	"meta.console": "Console",
+	"meta.console.ph": "grandMA2, ETC Eos, …",
+	"meta.logo": "Rental company / venue logo",
+	"meta.logo.help": "PNG / SVG · shown in the document footer",
+	"meta.logo.upload": "Upload logo",
+	"meta.logo.alt": "logo",
+
+	"drop.default": "Drop files here or click to choose",
+	"drop.busy": "Processing…",
+	"drop.error": (message) => `Couldn't process the file: ${message}`,
+
+	"times.installation": "Load-in time",
+	"times.installation.ph": "e.g. 2 h 30 min",
+	"times.focus": "Focus time",
+	"times.focus.ph": "e.g. 3 h 20 min",
+	"times.runtime": "Running time",
+	"times.runtime.ph": "e.g. 1 h 45 min",
+	"times.staff": "Crew by role",
+	"staff.add": "Add role",
+	"staff.empty":
+		"The list is empty. Add roles (video operator, followspot operator, …) and the number of people.",
+	"staff.role.ph": "Role (video operator, followspot operator, …)",
+	"staff.qty.ph": "Qty",
+	"staff.total": (n) => `Total: ${n} ${n === 1 ? "person" : "people"}`,
+	"times.installation.note":
+		"provided the venue's house rig matches the standard one",
+	"times.focus.note":
+		"with the crew listed and the rig matching what the show needs",
+	"plots.base": "Venue house rig",
+	"plots.base.help":
+		"Capture · JPG · The venue's permanent rig (without added equipment)",
+	"plots.show": "Show rig",
+	"plots.show.help": "Capture · JPG · The rig the show needs",
+	"plots.replace": "Replace",
+	"plots.clear": "Remove",
+
+	"gallery.drop": "Drop photos here or click to choose",
+	"gallery.drop.help":
+		"JPG / PNG · several files · captions and fixture tags are set below",
+	"gallery.empty": "No photos yet",
+	"gallery.tag.ph":
+		"Fixture / position (e.g. Mac Quantum #5, FOH truss 3)",
+	"gallery.caption.ph": "Caption (optional)",
+	"gallery.count": (n) => `${n} ${n === 1 ? "photo" : "photos"}`,
+	"gallery.clearAll": "Remove all",
+	"gallery.confirmClear": "Remove all photos? This can't be undone.",
+	"gallery.clearAll.confirm": "Really remove all?",
+	"lightbox.prev": "Previous",
+	"lightbox.next": "Next",
+	// формат счётчика повторён в utils/exportScript.js — менять вместе
+	"lightbox.count": (current, total) => `${current} / ${total}`,
+
+	"fixtures.add": "Add fixture",
+	"fixtures.type.ph": "Name / model (Source Four 26°, Mac Quantum, …)",
+	"fixtures.qty.ph": "Qty",
+	"fixtures.info.ph": "Gobo, iris, yoke, DMX address, notes…",
+	"fixtures.empty": "The list is empty. Add at least one fixture type.",
+	"fixtures.total": (n) => `Total: ${n} ${n === 1 ? "unit" : "units"}`,
+	"fixtures.col.type": "Name",
+	"fixtures.col.qty": "Qty",
+	"fixtures.col.info": "Notes",
+	"fixtures.expand": "Expand",
+	"fixtures.collapse": "Collapse",
+
+	"cues.add": "Add cue",
+	"cues.empty":
+		"The cue list is empty. Click “Add cue” to make the first entry.",
+	"cues.import": "Import from MA2 XML",
+	"cues.import.hint": "Choose an XML exported from grandMA2 onPC (Sequence → Export → XML).",
+	"cues.import.ok": (n) => `Imported ${n} ${n === 1 ? "cue" : "cues"} from MA2 XML`,
+	"cues.import.fail": (reason) => `Couldn't get cues from the XML: ${reason || "empty result"}`,
+	"cues.import.readError": (message) => `File read error: ${message}`,
+	"cues.hasCmd": "has cmd",
+	"cues.info.ph": "Cue description",
+	"cues.col.num": "#",
+	"cues.col.name": "Name",
+	"cues.col.info": "Description",
+	"cues.col.cmd": "Cmd",
+	"cues.col.trigger": "Trigger",
+	"cues.name.ph": "e.g. Opening",
+	"cues.fade.ph": "0.0",
+	"cues.cmd.ph": "On Executor 1.…; Executor 1.… At 100 Fade 3",
+	"cues.trigger.ph": "Go / Follow / Time",
+	"cues.search.ph": "Search cues (name, description, cmd)",
+	"cues.search.empty": (q) => `Nothing found for “${q}”`,
+	"cues.summary": (n, total) => `Showing ${n} of ${total}`,
+	"cues.expand": "Expand",
+	"cues.collapse": "Collapse",
+
+	"ma2.warn.empty": "Empty input",
+	"ma2.warn.invalidXml": (detail) => `Invalid XML: ${detail}`,
+	"ma2.warn.noCues":
+		"No <Cue> found in the XML. Check that this is a sequence export, not a fixture library.",
+
+	"md.toolbar": "Formatting",
+	"md.hint": "Markdown:",
+	"md.bold.label": "B",
+	"md.bold.title": "Bold: **text**",
+	"md.bold.ph": "bold",
+	"md.italic.label": "I",
+	"md.italic.title": "Italic: _text_",
+	"md.italic.ph": "italic",
+	"md.h3.label": "H3",
+	"md.h3.title": "Heading: ### text (on a new line)",
+	"md.h3.ph": "heading",
+	"md.ul.title": "Bulleted list: - item (on a new line)",
+	"md.ul.ph": "item",
+	"md.quote.title": "Quote: > text (on a new line)",
+	"md.quote.ph": "quote",
+	"md.link.title": "Link: [text](https://...)",
+	"md.link.ph": "text",
+	"md.code.ph": "code",
+
+	"commentary.ph":
+		"Free text · line breaks are kept. Describe the lighting dramaturgy, technical details, agreements with the director, etc.",
+
+	"doc.kick": "Technical documentation",
+	"doc.showLabel": "Show title",
+	"doc.times.focus": "Focus",
+	"doc.times.installation": "Load-in",
+	"doc.times.runtime": "Running time",
+	"doc.times.staff": "Crew",
+	"doc.times.staff.role": "Role",
+	"doc.times.staff.qty": "Qty",
+	"doc.times.staff.total": "Total",
+	"doc.section.plots": "Rig",
+	"doc.section.gallery": "Fixture gallery",
+	"doc.section.fixtures": "Additional fixtures",
+	"doc.section.cues": "Cue list",
+	"doc.section.commentary": "Designer's notes",
+	"doc.foot.left": (name) => name || "Untitled",
+	"doc.foot.right": "",
+
+	"common.delete": "Delete",
+	"common.close": "Close",
+	"common.cancel": "Cancel",
+	"common.replace": "Replace",
+	"common.zoom": "Zoom in",
+
+	"unit.b": "B",
+	"unit.kb": "KB",
+	"unit.mb": "MB",
+	"unit.gb": "GB",
+
+	"storage.lowSpace": (free) =>
+		`Browser storage is running out: ${free} left. New photos may not be saved. Remove photos you don't need and export to HTML as a backup.`,
+	"common.moveUp": "Move up",
+	"common.moveDown": "Move down",
+};
