@@ -10,6 +10,8 @@ npm run dev       # dev server, http://localhost:5173
 npm run build     # production build → dist/ (runs scripts/postbuild.js after)
 npm run preview   # serve dist/
 npm run lint      # strict ESLint (eslint.config.js): every rule is an error
+npm test          # Vitest in a real headless browser (Brave/Chromium via Playwright)
+npm run test:coverage  # same + coverage; thresholds 95% (vitest.config.js)
 ```
 
 ## Hard rules
@@ -24,10 +26,10 @@ npm run lint      # strict ESLint (eslint.config.js): every rule is an error
 
 ## Before saying "done"
 
-1. `npm run lint` and `npm run build` pass. Don't silence a rule with `eslint-disable` without a comment explaining why.
+1. `npm run lint`, `npm run test:coverage` and `npm run build` pass. Don't silence a rule with `eslint-disable` without a comment explaining why.
 2. For UI changes: check the preview, print, and an exported HTML opened from `file://`.
 3. Docs in `docs/` still match the code. Update them in the same commit.
-4. There are no automated tests yet. For refactors, compare old vs new behavior on the same inputs, and test DOM/XML code in a **real browser** (not linkedom/jsdom).
+4. Tests live in `tests/` and run in a **real browser** (never linkedom/jsdom). Only the storage layer is covered so far (list in `vitest.config.js` → `coverage.include`): when you add tests for a new module, add it there. For refactors of untested code, compare old vs new behavior on the same inputs.
 
 ## Lint gotchas
 

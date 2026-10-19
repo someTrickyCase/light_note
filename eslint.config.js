@@ -46,7 +46,7 @@ const RESTRICTED_SYNTAX = [
 ];
 
 export default [
-	{ ignores: ["dist/**", "node_modules/**"] },
+	{ ignores: ["dist/**", "node_modules/**", "coverage/**"] },
 
 	js.configs.recommended,
 	strict(react.configs.flat.recommended),
@@ -217,5 +217,21 @@ export default [
 		files: ["*.config.js", "scripts/**"],
 		languageOptions: { globals: { ...globals.node } },
 		rules: { "no-console": "off", "no-restricted-syntax": "off" }, // правила про UI-текст и стили — только для src/
+	},
+
+	// Тесты (Vitest в браузере): они намеренно лезут туда, куда коду приложения нельзя
+	{
+		files: ["tests/**"],
+		rules: {
+			"no-restricted-globals": "off", // готовят localStorage/IndexedDB старых версий
+			"no-restricted-syntax": "off", // ожидаемые строки на русском — данные теста, не UI
+			"no-param-reassign": "off", // patch() подменяет методы браузерных прототипов
+			"unicorn/no-this-outside-of-class": "off", // подмены IDBObjectStore.prototype.* используют this
+			"unicorn/no-await-expression-member": "off", // (await dumpDB()).blobs читается проще в проверках
+			"unicorn/consistent-function-scoping": "off", // помощники рядом с тестами, которые их используют
+			"unicorn/no-useless-undefined": "off", // undefined здесь — проверяемое значение
+			"require-atomic-updates": "off", // возврат подмены прототипа после await — так и задумано
+			"max-lines": "off",
+		},
 	},
 ];

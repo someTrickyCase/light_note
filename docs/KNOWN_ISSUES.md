@@ -30,11 +30,12 @@ Fix idea: reuse `compressImage`, or open a `FileDrop` picker instead. (Will like
 
 ## Testing
 
-There are no automated tests yet. During the lint refactor, behavior was checked with throwaway scripts:
+Vitest in a real browser (`npm test`, see README → Tests). Covered so far: the storage layer (`state/storage.js`, `state/idb.js`, `utils/storageQuota.js`, `utils/useQuotaWatch.js`, `components/QuotaLights.jsx`), 59 tests, ~100% lines / ~98% branches.
 
-- **characterization tests** (old vs new code on the same inputs): `renderMarkdown` 14/14, `projectReducer` 60/60, `parseMA2` 5/5 in a real browser
-- **browser smoke test** (headless Brave via `playwright-core`): 28/29 checks pass (the one failure is the favicon 404); the export was opened from `file://`
+Not covered yet (next candidates, in order):
 
-Next step: Vitest + these cases as real tests, with a **real grandMA2 XML export** in `tests/fixtures/`.
+- `parseMA2`: needs a **real grandMA2 XML export** in `tests/fixtures/`
+- `projectReducer`, `renderMarkdown`: the old throwaway characterization cases (60/60 and 14/14) should become real tests
+- export: render → standalone HTML → open from `file://`
 
 ⚠️ Lesson learned: `parseMA2` must be tested with a **real** DOM. linkedom ignores XML namespaces, so it missed a bug that broke import completely (an autofix changed the namespace URI to `https`).

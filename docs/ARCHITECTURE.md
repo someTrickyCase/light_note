@@ -39,7 +39,7 @@ src/
 │   ├── model.js             # emptyProject(), uid(), STORAGE_KEY, SCHEMA_VERSION
 │   ├── reducer.js           # projectReducer: table of handlers, the ONLY place project state changes
 │   ├── ProjectProvider.jsx  # context: useProject(), useDispatch(), useProjectLoading()
-│   ├── storage.js           # load (migrations, one-time localStorage → IDB move) / save (queued, IDB only)
+│   ├── storage.js           # createStorage(): load (migrations, one-time localStorage → IDB move) / save (queued, IDB only); `storage` = the app instance
 │   └── idb.js               # minimal IndexedDB wrapper: "project" + "blobs" stores
 ├── i18n/
 │   ├── dict.js              # DICT + SUPPORTED_LOCALES

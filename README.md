@@ -70,6 +70,8 @@ npm install
 | `npm run build` | Production build into `dist/` (single IIFE bundle, CSS inlined via custom Vite plugin) |
 | `npm run preview` | Serve `dist/` locally for final verification |
 | `npm run lint` | Strict ESLint check (`eslint.config.js`); `npm run lint:fix` applies safe autofixes |
+| `npm test` | Vitest in a real headless browser (`npm run test:watch` for watch mode) |
+| `npm run test:coverage` | Tests + coverage report in `coverage/` (fails below 95%) |
 
 ## Build output
 
@@ -194,4 +196,9 @@ git push origin v0.3.0
 - `docs/TOKENS.md` — design tokens
 - `docs/I18N.md` — translation dictionary
 - `docs/KNOWN_ISSUES.md` — known bugs, cleanup backlog, testing status
+
+### Tests
+
+Tests run in a real browser through Vitest browser mode + Playwright, because IndexedDB, Blob and XML parsing must be real (fake DOMs have given false passes here before).
+The browser is `CHROMIUM_PATH` if set, otherwise Brave from snap, otherwise Playwright's own Chromium (`npx playwright install chromium` once).
 
