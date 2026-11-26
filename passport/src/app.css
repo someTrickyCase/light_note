@@ -1,0 +1,59 @@
+/* Дополнения к стилям Light Note (основные стили и шрифты берутся из его index.html при сборке) */
+.tabs{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-bottom:var(--s-6)}
+.editor__title-meta{margin-left:auto}
+.lrow{border:1px solid var(--c-line);border-radius:var(--r-md);background:var(--c-surface);overflow:hidden}
+.lrow.is-open{border-color:var(--c-steel)}
+.lrow__head{display:grid;grid-template-columns:44px 1fr 24px;gap:8px;align-items:center;width:100%;border:none;background:transparent;padding:8px 10px;cursor:pointer;font:inherit;color:inherit;text-align:left}
+.lrow__head:hover{background:var(--c-page)}
+.lrow__lead{font-family:var(--ff-mono);font-weight:600;color:var(--c-accent);font-size:var(--fs-sm)}
+.lrow__prev{font-size:var(--fs-sm);color:var(--c-ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.lrow__prev i{color:var(--c-soft);font-style:normal}
+.lrow__chev{color:var(--c-soft);text-align:center}
+.lrow__body{padding:8px 10px 10px;display:flex;flex-direction:column;gap:var(--s-3);border-top:1px solid var(--c-line-2);background:var(--c-page)}
+.lrow__grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2)}
+.lrow__grid .is-wide{grid-column:1/-1}
+.lrow__grid .input,.lrow__grid .textarea{padding:6px 8px;font-size:var(--fs-sm);min-height:0}
+.lrow__grid .textarea{min-height:52px}
+.lrow__actions{display:flex;gap:4px;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+.lrow__photos{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.thumb{position:relative}
+.thumb img{height:auto;width:auto;max-height:110px;max-width:150px;object-fit:contain;cursor:zoom-in;border:1px solid var(--c-line);border-radius:var(--r-sm);background:var(--c-line-2)}
+.thumb button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;border:1px solid var(--c-err-bd);background:var(--c-surface);color:var(--c-err);cursor:pointer;line-height:1;font-size:12px;padding:0}
+.tools{display:flex;flex-wrap:wrap;gap:var(--s-2);align-items:center;margin-top:var(--s-3)}
+.tools .total{margin-left:auto;font-family:var(--ff-mono);font-size:var(--fs-xs);color:var(--c-soft)}
+.photo-card__top{display:flex;gap:var(--s-2)}
+.cue-search{margin-bottom:var(--s-3)}
+.menu__list{min-width:240px}
+.doc__kick-part{font-family:var(--ff-mono);font-size:var(--fs-xs);letter-spacing:.2em;text-transform:uppercase;color:var(--c-accent);margin-bottom:6px}
+.doc__part{font-family:var(--ff-title);font-size:var(--fs-3xl);font-weight:400;margin:var(--s-10) 0 0;padding-top:var(--s-6);border-top:3px solid var(--c-strong)}
+.doc__h3{font-family:var(--ff-display);font-size:var(--fs-xl);font-weight:600;margin-bottom:var(--s-3)}
+.doc__thumb{height:90px;width:auto;margin:2px 4px 2px 0;display:inline-block;border-radius:var(--r-sm);cursor:zoom-in;background:var(--c-line-2)}
+.doc__logo{max-height:56px;max-width:220px;object-fit:contain;background:var(--c-logo-bg);padding:var(--logo-pad);border-radius:var(--r-sm);margin-bottom:var(--s-4)}
+.doc__table td.pre{white-space:pre-line}
+.doc__sec2{margin-top:var(--s-6)}
+.doc__empty-hint{color:var(--c-soft);font-family:var(--ff-mono);font-size:var(--fs-sm)}
+.drop{display:block;width:100%}
+.drop input{display:none}
+.drop__hint{display:block}
+.doc__plots{display:flex;flex-direction:column;gap:var(--s-4)}
+.doc__plot-full{margin:0;width:100%}
+.doc__plot-full img.doc__plot-img{width:100%;height:auto;max-width:none;cursor:zoom-in;background:#fff;border:1px solid var(--c-line);border-radius:var(--r-sm)}
+.doc__pgrid{display:grid;gap:var(--s-2);padding:var(--s-1) 0}
+.doc__pgrid--1{grid-template-columns:minmax(0,70%)}
+.doc__pgrid--2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.doc__pgrid img.doc__photo{width:100%;height:auto;max-width:none;object-fit:contain;cursor:zoom-in;border-radius:var(--r-sm);background:var(--c-line-2)}
+.doc__table tbody.doc__grp>tr.doc__photos>td{border-top:none}
+@media print{
+ .doc__sec2--plot{break-before:page;break-inside:avoid}
+ .doc__sec2--plot .doc__h3{margin-bottom:var(--s-2)}
+ .doc__plot-full{break-inside:avoid}
+ .doc__plot-full:not(:first-child){break-before:page}
+ .doc__plot-full img.doc__plot-img{width:auto;max-width:100%;max-height:232mm;margin:0 auto;border:none}
+ .doc__grp{break-inside:avoid}
+ .doc__pgrid img.doc__photo{max-height:110mm}
+ .doc__part{break-before:auto;break-after:avoid}
+ .doc__table tr{break-inside:avoid}
+ .doc__table thead{display:table-header-group}
+ .doc__thumb{height:30mm;cursor:auto}
+ .doc__sec2{break-inside:auto}
+}
