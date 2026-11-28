@@ -16,6 +16,7 @@ import { render, run, settle } from "./react.jsx";
 const KEY = "tld.locale.v1";
 const CYRILLIC = /[А-Яа-яЁё]/;
 const KEYS = Object.keys(DICT.ru);
+const GB = 1024 ** 3;
 
 beforeEach(() => localStorage.removeItem(KEY));
 afterEach(() => {
@@ -128,6 +129,9 @@ describe("switching the language in the app", () => {
 	async function mountApp() {
 		vi.spyOn(storage, "load").mockResolvedValue(project());
 		vi.spyOn(storage, "save").mockImplementation(() => {});
+		// место «заканчивается» всегда, а не только на машине с маленьким диском:
+		// так тест проверяет и перевод предупреждения
+		vi.spyOn(storage, "estimate").mockResolvedValue({ usedBytes: 99.5 * GB, quotaBytes: 100 * GB });
 		const view = render(<App />);
 		await settle();
 		const pick = async (name) => {
@@ -148,6 +152,7 @@ describe("switching the language in the app", () => {
 	it("starts in Russian; English changes everything, the page language and title; it is remembered", async () => {
 		const { container, pick } = await mountApp();
 		expect(container.querySelector(".menu__button").textContent).toBe("Меню");
+		expect(container.textContent).toContain("Место в браузере заканчивается");
 		expect(localStorage.getItem(KEY)).toBeNull(); // кто не выбирал — следует умолчанию
 		expect(container.querySelector(".doc__byline").textContent).toContain("25 декабря 2026 г.");
 

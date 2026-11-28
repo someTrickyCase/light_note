@@ -21,6 +21,11 @@ export function pushToast({ tone = "info", msg, ttl = 5000 }) {
   return id;
 }
 
+export function updateToast(id, changes) {
+  _toastQueue = _toastQueue.map((t) => (t.id === id ? { ...t, ...changes } : t));
+  notify();
+}
+
 export function dismissToast(id) {
   _toastQueue = _toastQueue.filter((t) => t.id !== id);
   notify();
