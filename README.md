@@ -115,6 +115,7 @@ This project uses **trunk-based development** with short-lived feature branches.
 ### Branching
 
 - `main` — always releasable; protected. Direct pushes are blocked.
+- Every PR closes an issue and changes at most 400 lines. See `CLAUDE.md` → "PR pipeline".
 - `features/<short-name>` — feature branches (e.g., `features/ma2-import`, `features/idxedb-storage`). Branched from `main`, merged back via PR.
 - `hotfix/<short-name>` — urgent fixes branched from `main`.
 

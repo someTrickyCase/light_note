@@ -1,0 +1,33 @@
+name: Feature
+description: A new feature or an improvement
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard or missing today? Who needs it?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What should the app do?
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: Acceptance criteria
+      description: How do we know it is done? One check per line.
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: textarea
+    id: split
+    attributes:
+      label: Can it be split?
+      description: >-
+        A PR changes at most 400 lines. If this is bigger, list the
+        smaller steps; each becomes a sub-issue with its own PR.

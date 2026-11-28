@@ -42,6 +42,19 @@ npm run test:coverage  # same + coverage; thresholds 95% (vitest.config.js)
 Trunk-based: branch from `main` as `features/<name>`, `hotfix/<name>`, etc. (kebab-case), PR to `main`, squash-merge.
 Commits follow Conventional Commits: `feat(cues): ...`. Scopes and full rules are in `README.md` → "Git workflow".
 
+## PR pipeline
+
+1. **No PR without an issue.** Every PR solves one issue and says `Closes #N` in its description. No issue yet? Open one first (forms in `.github/ISSUE_TEMPLATE/`).
+2. **PRs as small as possible: at most 400 changed lines** (`package-lock.json`, `vendor/`, `dist/` not counted). If an issue is bigger, first split it into sub-issues, then solve each with its own small PR. Data-model work goes first (schema + migration), then editor, then document.
+3. **Outside PRs that solve no issue are not merged.** Thank the author, turn the good ideas into issues (link the PR), comment with the links, close the PR.
+4. **No new `.md` files in the repo.** Project docs live only in `CLAUDE.md`, `README.md` and the existing `docs/*.md`.
+
+Enforced by GitHub:
+
+- `.github/workflows/pr-rules.yml` (check `pr-rules`): fails without a linked issue or over 400 lines. The `size-exception` label (maintainer only) skips the size check; use it rarely, e.g. for generated files.
+- `.github/workflows/ci.yml` (check `ci`): lint, tests with coverage, build.
+- Ruleset on `main`: PR required, both checks required, linear history, no force-push or deletion. Squash-merge only; merged branches are deleted automatically.
+
 ## Docs
 
 - `docs/ARCHITECTURE.md`: code map, data model, storage/export flows, MA2 import, recipe to add a section
