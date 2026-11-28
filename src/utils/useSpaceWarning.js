@@ -10,7 +10,7 @@
 import { useEffect, useRef } from "react";
 import { storage } from "../state/storage.js";
 import { formatBytes, freeBytes, isSpaceLow } from "./storageQuota.js";
-import { dismissToast, pushToast } from "./toast.js";
+import { dismissToast, pushToast, updateToast } from "./toast.js";
 
 // Пауза после изменения проекта: даём сохранению дойти до IDB и не
 // дёргаем estimate() на каждую букву.
@@ -20,6 +20,16 @@ export function useSpaceWarning(project, t, tn) {
 	const measuredRef = useRef(false);
 	// id висящего предупреждения или null
 	const toastRef = useRef(null);
+	// сколько осталось на момент предупреждения — чтобы пересобрать текст на новом языке
+	const freeRef = useRef(null);
+
+	// Сменили язык — висящее предупреждение сразу переводим, не дожидаясь замера.
+	// Закрытое пользователем updateToast не найдёт в очереди и не вернёт.
+	useEffect(() => {
+		if (toastRef.current !== null) {
+			updateToast(toastRef.current, { msg: tn("storage.lowSpace", formatBytes(freeRef.current, t)) });
+		}
+	}, [t, tn]);
 
 	useEffect(() => {
 		let alive = true;
@@ -32,7 +42,8 @@ export function useSpaceWarning(project, t, tn) {
 				measuredRef.current = true;
 				const low = isSpaceLow(usedBytes, quotaBytes);
 				if (low && toastRef.current === null) {
-					const free = formatBytes(freeBytes(usedBytes, quotaBytes), t);
+					freeRef.current = freeBytes(usedBytes, quotaBytes);
+					const free = formatBytes(freeRef.current, t);
 					toastRef.current = pushToast({ tone: "warn", msg: tn("storage.lowSpace", free), ttl: 0 });
 				}
 				if (!low && toastRef.current !== null) {

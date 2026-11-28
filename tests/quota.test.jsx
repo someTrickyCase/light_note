@@ -6,7 +6,9 @@ import { makeTranslator } from "../src/i18n/translate.js";
 import { override } from "./helpers.js";
 import { render, settle } from "./react.jsx";
 
-const { t, tn } = makeTranslator("ru");
+const RU = makeTranslator("ru");
+const EN = makeTranslator("en");
+const { t, tn } = RU;
 const KB = 1024;
 const MB = KB * 1024;
 const GB = MB * 1024;
@@ -57,8 +59,8 @@ describe("useSpaceWarning", () => {
 		return state;
 	}
 
-	function Probe({ project }) {
-		useSpaceWarning(project, t, tn);
+	function Probe({ project, i18n = RU }) {
+		useSpaceWarning(project, i18n.t, i18n.tn);
 		return null;
 	}
 	const warnings = () => getToastQueue().filter((toast) => toast.msg.startsWith("Место в браузере"));
@@ -80,6 +82,31 @@ describe("useSpaceWarning", () => {
 		expect(toast.msg).toBe(tn("storage.lowSpace", "700.00 МБ"));
 		expect(toast.tone).toBe("warn");
 		expect(toast.ttl).toBe(0); // висит, пока не закроют
+	});
+
+	it("language switched → the open warning speaks the new language at once, still one toast", async () => {
+		fakeStorage({ usage: 100 * GB - 700 * MB, quota: 100 * GB });
+		const project = {};
+		const { rerender } = render(<Probe project={project} />);
+		await settle(20);
+		const [before] = getToastQueue();
+		rerender(<Probe project={project} i18n={EN} />);
+		await settle(20);
+		expect(getToastQueue()).toHaveLength(1);
+		const [after] = getToastQueue();
+		expect(after.id).toBe(before.id);
+		expect(after.msg).toBe(EN.tn("storage.lowSpace", formatBytes(700 * MB, EN.t)));
+	});
+
+	it("closed warning + language switch → stays closed", async () => {
+		fakeStorage({ usage: 100 * GB - 700 * MB, quota: 100 * GB });
+		const project = {};
+		const { rerender } = render(<Probe project={project} />);
+		await settle(20);
+		dismissToast(getToastQueue()[0].id);
+		rerender(<Probe project={project} i18n={EN} />);
+		await settle(20);
+		expect(getToastQueue()).toEqual([]);
 	});
 
 	it("drops below 1 GB while working → warns once, not on every save", async () => {
